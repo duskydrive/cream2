@@ -1,1 +1,35 @@
+@use '@angular/material' as mat;
+
+// Plus imports for other components in your app.
+@import 'styles/palette.scss';
+@import 'styles/typography.scss';
+
+@include mat.core();
+
+// define colors
+$cream2-primary: mat.define-palette($primary-palette);
+$cream2-accent: mat.define-palette($accent-palette);
+$cream2-warn: mat.define-palette($warn-palette);
+
+// define typography
+$cream2-typography: $custom-typography;
+
+// define theme
+$cream2-theme: mat.define-light-theme((
+  color: (
+    primary: $cream2-primary,
+    accent: $cream2-accent,
+    warn: $cream2-warn,
+  ),
+  typography: $cream2-typography,
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include mat.all-component-themes($cream2-theme);
+
 /* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

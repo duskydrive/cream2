@@ -1,0 +1,74 @@
+$primary-palette: (
+  50: #142018,
+  100: #121d16,
+  200: #111b15,
+  300: #101913,
+  400: #0e1712,
+  500: #0d1510,
+  600: #0c130e,
+  700: #0a110d,
+  800: #090f0b,
+  900: #080d0a,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: white,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);
+
+$accent-palette: (
+  50: #5d7f72,
+  100: #57776a,
+  200: #516e63,
+  300: #4a665b,
+  400: #445e54,
+  500: #3e554c,
+  600: #384c44,
+  700: #32443d,
+  800: #2b3b35,
+  900: #25332e,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: white,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);
+
+$warn-palette: (
+  50: #e09688,
+  100: #db8575,
+  200: #d67462,
+  300: #d1644f,
+  400: #cc533c,
+  500: #be4832,  // Your main color
+  600: #ab412d,
+  700: #983a28,
+  800: #853223,
+  900: #722b1e,
+  contrast: (
+    50: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    200: rgba(black, 0.87),
+    300: rgba(black, 0.87),
+    400: white,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  )
+);

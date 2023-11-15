@@ -1,0 +1,19 @@
+@use '@angular/material' as mat;
+
+$custom-typography: mat.define-typography-config(
+  $font-family: 'Raleway, sans-serif',
+
+  $headline-1: mat.define-typography-level(96px, 117px, 300),
+  $headline-2: mat.define-typography-level(60px, 72px, 300),
+  $headline-3: mat.define-typography-level(48px, 58px, 400),
+  $headline-4: mat.define-typography-level(34px, 43px, 400),
+  $headline-5: mat.define-typography-level(24px, 29px, 400),
+  $headline-6: mat.define-typography-level(20px, 25px, 500),
+  $subtitle-1: mat.define-typography-level(16px, 24px, 400),
+  $subtitle-2: mat.define-typography-level(14px, 24px, 500),
+  $body-1: mat.define-typography-level(16px, 24px, 400, $font-family: 'Roboto, sans-serif'),
+  $body-2: mat.define-typography-level(14px, 20px, 400, $font-family: 'Roboto, sans-serif'),
+  $caption: mat.define-typography-level(12px, 16px, 400),
+  $button: mat.define-typography-level(14px, 14px, 500),
+  $overline: mat.define-typography-level(10px, 20px, 400)
+);
