@@ -1,3 +1,7 @@
 {
-    "hello": "Вітаю!"
-  }
+  "hello": "Вітаю!",
+  "email": "Email",
+  "password": "Пароль",
+  "register": "Реєстрація",
+  "login": "Увійти"
+}

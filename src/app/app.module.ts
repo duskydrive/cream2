@@ -27,6 +27,7 @@ export function createTranslateLoader(http: HttpClient) {
     BrowserAnimationsModule,
     HttpClientModule,    
     LoginModule,
+    // Maybe should be in shared or core?
     TranslateModule.forRoot({
       loader: {
           provide: TranslateLoader,
@@ -36,10 +37,10 @@ export function createTranslateLoader(http: HttpClient) {
     }),
   ],
   providers: [
-    // {
-    //   provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-    //   useValue: { appearance: 'outline' },
-    // }
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: { appearance: 'outline' },
+    }
   ],
   bootstrap: [AppComponent]
 })

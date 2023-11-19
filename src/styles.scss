@@ -3,6 +3,7 @@
 // Plus imports for other components in your app.
 @import 'styles/palette.scss';
 @import 'styles/typography.scss';
+@import 'styles/mixins.scss';
 
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
@@ -31,8 +32,11 @@ $cream2-theme: mat.define-light-theme((
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
+@include custom-material-button-styles($cream2-theme);
 @include mat.all-component-themes($cream2-theme);
 @include mat.typography-hierarchy($cream2-theme);
+// @include custom-button-theme($cream2-theme);
+
 // fix tailwind and material border problem
 .mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field .mdc-notched-outline__notch {
   border-right-style: hidden;
@@ -40,3 +44,6 @@ $cream2-theme: mat.define-light-theme((
 .mat-mdc-input-element {
   box-shadow: none !important;
 }
+
+
+

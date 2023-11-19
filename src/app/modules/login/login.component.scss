@@ -1,3 +1,14 @@
+@use '@angular/material' as mat;
+
 .logo {
     width: 177px;
 }
+
+.form-wrapper {
+    padding: 50px 40px 70px;
+    width: 454px;
+    // background-color: mat.get-theme-color() ;
+}
+
+// https://material.angular.io/guide/theming-your-components
+// next task: add foreground and background palettes and them use them in get-theme-color funcs

@@ -1,3 +1,7 @@
 {
-    "hello": "Hello there!"
-  }
+  "hello": "Hello there!",
+  "email": "Email",
+  "password": "Password",
+  "register": "Register",
+  "login": "Login"
+}

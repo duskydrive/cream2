@@ -1,10 +1,18 @@
 <div class="flex justify-center flex-col items-center w-screen h-screen">
     <img src="assets/images/logo-black.svg" alt="logo" class="logo mb-12">
-    <form>
-        <h3 class="mat-h3">{{ 'hello' | translate }}</h3>
-        <mat-form-field appearance="outline" class="mb-4">
-            <mat-label>Email</mat-label>
-            <input matInput>
+    <form class="form-wrapper">
+        <h3 class="text-center">{{ 'hello' | translate }}</h3>
+        <mat-form-field appearance="outline" class="mb-4 w-full">
+            <mat-label>{{ 'email' | translate }}</mat-label>
+            <input matInput type="email">
         </mat-form-field>
+        <mat-form-field appearance="outline" class="mb-4 w-full">
+            <mat-label>{{ 'password' | translate }}</mat-label>
+            <input matInput type="password">
+        </mat-form-field>
+        <div class="flex justify-between align-center">
+            <button mat-button>{{ 'register' | translate }}</button>
+            <button mat-raised-button color="accent">{{ 'login' | translate }}</button>
+        </div>
     </form>
 </div>

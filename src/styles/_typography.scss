@@ -7,14 +7,14 @@ $custom-typography: mat.define-typography-config(
   $headline-2: mat.define-typography-level(60px, normal, 400),
   $headline-3: mat.define-typography-level(54px, normal, 400),
   $headline-4: mat.define-typography-level(48px, normal, 400),
-  $headline-5: mat.define-typography-level(42px, normal, 700),
-  $headline-6: mat.define-typography-level(36px, normal, 700),
-  $subtitle-1: mat.define-typography-level(28px, normal, 500),
-  $subtitle-2: mat.define-typography-level(22px, normal, 500),
+  $headline-5: mat.define-typography-level(42px, normal, 600),
+  $headline-6: mat.define-typography-level(36px, normal, 600),
+  $subtitle-1: mat.define-typography-level(28px, normal, 600),
+  $subtitle-2: mat.define-typography-level(22px, normal, 600),
   $body-1: mat.define-typography-level(18px, normal, 400, $font-family: 'Roboto, sans-serif'),
   $body-2: mat.define-typography-level(16px, normal, 400, $font-family: 'Roboto, sans-serif'),
   $caption: mat.define-typography-level(11px, normal, 400),
-  $button: mat.define-typography-level(22px, normal, 500),
+  $button: mat.define-typography-level(22px, normal, 500, $font-family: 'Roboto, sans-serif'),
 );
 
 $body-1-raleway: mat.define-typography-level(

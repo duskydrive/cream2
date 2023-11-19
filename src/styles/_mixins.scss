@@ -1,0 +1,9 @@
+@mixin custom-material-button-styles($theme) {
+    .mat-mdc-button, 
+    .mat-mdc-flat-button,
+    .mat-mdc-stroked-button,
+    .mat-mdc-raised-button {
+      height: auto !important;
+      padding: 15px 70px !important; // Specify your custom padding here
+    }
+}
