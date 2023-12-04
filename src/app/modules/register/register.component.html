@@ -1,0 +1,31 @@
+<div class="p-3 flex justify-center flex-col items-center w-screen h-screen">
+    <img src="assets/images/logo-black.svg" alt="logo" class="logo mb-[58px]">
+    <form class="form-wrapper" [formGroup]="registerForm">
+        <h3 class="mat-h3 text-center">{{ 'hello' | translate }}</h3>
+        
+        <mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+            <mat-label>{{ 'email' | translate }}</mat-label>
+            <input matInput type="email" formControlName="email">
+            <mat-error>{{formHelpersService.checkForErrorsIn(registerForm.get('email')!) | translate}}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+            <mat-label>{{ 'name' | translate }}</mat-label>
+            <input matInput type="text" formControlName="name">
+            <mat-error>{{formHelpersService.checkForErrorsIn(registerForm.get('name')!) | translate}}</mat-error>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="mb-10 w-full">
+            <mat-label>{{ 'password' | translate }}</mat-label>
+            <input matInput type="password" formControlName="password">
+            <mat-error>{{formHelpersService.checkForErrorsIn(registerForm.get('password')!) | translate}}</mat-error>
+        </mat-form-field>
+
+        <div class="flex justify-between align-center">
+            <button mat-button type="button" routerLink="/login">{{ 'login' | translate }}</button>
+            <button mat-raised-button color="accent">{{ 'register' | translate }}</button>
+        </div>
+    </form>
+</div>
+
+<!-- Підключай сходу firebase щоб зробити нормальний auth service одразу, потім guards зроби, а потім подумай структуру бекенда (таблиць) -->

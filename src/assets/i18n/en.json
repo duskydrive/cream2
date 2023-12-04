@@ -1,7 +1,12 @@
 {
   "hello": "Hello there!",
   "email": "Email",
+  "name": "Name",
   "password": "Password",
   "register": "Register",
-  "login": "Login"
+  "login": "Login",
+  "errors": {
+    "required": "Field is required",
+    "email": "Field must be an email"
+  }
 }

@@ -1,8 +1,10 @@
 @use '@angular/material' as mat;
+@use 'sass:map';
 
 // Plus imports for other components in your app.
 @import 'styles/palette.scss';
 @import 'styles/typography.scss';
+@import 'styles/overrides.scss';
 @import 'styles/mixins.scss';
 
 @import 'tailwindcss/base';
@@ -16,6 +18,9 @@ $cream2-primary: mat.define-palette($primary-palette);
 $cream2-accent: mat.define-palette($accent-palette);
 $cream2-warn: mat.define-palette($warn-palette);
 
+$cream2-foreground: $foreground;
+$cream2-background: $background;
+
 // define typography
 $cream2-typography: $custom-typography;
 
@@ -27,7 +32,17 @@ $cream2-theme: mat.define-light-theme((
     warn: $cream2-warn,
   ),
   typography: $cream2-typography,
+  density: -3, // default is 0
 ));
+
+$color: map.get($cream2-theme, color);
+
+$background: map.merge(map.get($color, background), $cream2-background);
+$foreground: map.merge(map.get($color, foreground), $cream2-foreground);
+
+// overriding color background/foreground
+$color: map.merge($color, (background: $cream2-background, foreground: $cream2-foreground));
+$cream2-theme: map.merge($cream2-theme, (color: $color));
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
@@ -45,5 +60,6 @@ $cream2-theme: mat.define-light-theme((
   box-shadow: none !important;
 }
 
-
-
+@function global-theme() {
+  @return $cream2-theme;
+}

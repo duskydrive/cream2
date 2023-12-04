@@ -1,17 +1,22 @@
-<div class="flex justify-center flex-col items-center w-screen h-screen">
-    <img src="assets/images/logo-black.svg" alt="logo" class="logo mb-12">
-    <form class="form-wrapper">
-        <h3 class="text-center">{{ 'hello' | translate }}</h3>
-        <mat-form-field appearance="outline" class="mb-4 w-full">
+<div class="p-3 flex justify-center flex-col items-center w-screen h-screen">
+    <img src="assets/images/logo-black.svg" alt="logo" class="logo mb-[58px]">
+    <form class="form-wrapper" [formGroup]="loginForm">
+        <h3 class="mat-h3 text-center">{{ 'hello' | translate }}</h3>
+        
+        <mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
             <mat-label>{{ 'email' | translate }}</mat-label>
-            <input matInput type="email">
+            <input matInput type="email" formControlName="email">
+            <mat-error>{{formHelpersService.checkForErrorsIn(loginForm.get('email')!) | translate}}</mat-error>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="mb-4 w-full">
+        
+        <mat-form-field appearance="outline" class="mb-10 w-full">
             <mat-label>{{ 'password' | translate }}</mat-label>
-            <input matInput type="password">
+            <input matInput type="password" formControlName="password">
+            <mat-error>{{formHelpersService.checkForErrorsIn(loginForm.get('password')!) | translate}}</mat-error>
         </mat-form-field>
+
         <div class="flex justify-between align-center">
-            <button mat-button>{{ 'register' | translate }}</button>
+            <button mat-button type="button" routerLink="/register">{{ 'register' | translate }}</button>
             <button mat-raised-button color="accent">{{ 'login' | translate }}</button>
         </div>
     </form>

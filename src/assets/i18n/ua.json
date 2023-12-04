@@ -1,7 +1,12 @@
 {
   "hello": "Вітаю!",
   "email": "Email",
+  "name": "Імʼя",
   "password": "Пароль",
   "register": "Реєстрація",
-  "login": "Увійти"
+  "login": "Увійти",
+  "errors": {
+    "required": "Поле обовʼязкове",
+    "email": "Має бути Email"
+  }
 }

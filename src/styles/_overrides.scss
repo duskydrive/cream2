@@ -1,3 +1,6 @@
-.mat-mdc-button, .mat-mdc-flat-button, .mat-mdc-raised-button, .mat-mdc-stroked-button, .mat-fab, .mat-mini-fab {
-    padding: 15px 70px !important; // Your custom padding
-  }
+@use './variables.scss' as variables;
+
+.mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading, .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch, .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+  border-color: variables.$border-color; 
+}
+
