@@ -13,6 +13,16 @@ import { LoginModule } from './modules/login/login.module';
 
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 
+import { AngularFireModule } from '@angular/fire/compat';
+import { FirestoreModule } from '@angular/fire/firestore';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { provideFirebaseApp, getApp, initializeApp } from '@angular/fire/app';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { AngularFirestoreModule, USE_EMULATOR as USE_FIRESTORE_EMULATOR, SETTINGS as FIRESTORE_SETTINGS } from '@angular/fire/compat/firestore';
+
+import { firebaseConfig } from './environments/environment';
+
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
 }
@@ -35,8 +45,15 @@ export function createTranslateLoader(http: HttpClient) {
           deps: [HttpClient]
       }
     }),
+    // AngularFireModule.initializeApp(firebaseConfig),
+    provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    provideFirestore(() => getFirestore()),
+    provideAuth(() => getAuth()),
+    // FirestoreModule,
+    // AngularFireAuthModule,
   ],
   providers: [
+    { provide: FIRESTORE_SETTINGS, useValue: { ignoreUndefinedProperties: true } },
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: { appearance: 'outline' },
@@ -47,6 +64,7 @@ export function createTranslateLoader(http: HttpClient) {
         subscriptSizing: 'dynamic'
       }
     },
+    // FirebaseApp,
   ],
   bootstrap: [AppComponent]
 })

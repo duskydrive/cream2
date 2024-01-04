@@ -1,17 +1,9 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
-@use '../styles.scss' as theme;
 
-@function get-color($palette, $color) {
-  $theme: theme.global-theme();
-//   @debug "Entire Theme: #{$theme}";
-
-
+@function get-color($theme, $palette, $color) {
   $color-config: mat.get-color-config($theme);
-//   @debug "Color Config: #{$color-config}"; // Debugging $color-config
-
   $palette-map: map.get($color-config, $palette);
-//   @debug "Palette Map for #{$palette}: #{$palette-map}";
 
   // Check if it's a primary/accent/warn palette or a foreground/background palette
   @if $palette == 'primary' or $palette == 'accent' or $palette == 'warn' {

@@ -1,1 +1,5 @@
+@use 'utils' as utils;
+@use 'theme' as theme;
+
 $border-color: #D0D4DD;
+$background-card: utils.get-color(theme.global-theme(), 'background', 'card');

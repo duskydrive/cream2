@@ -17,7 +17,7 @@
 
         <div class="flex justify-between align-center">
             <button mat-button type="button" routerLink="/register">{{ 'register' | translate }}</button>
-            <button mat-raised-button color="accent">{{ 'login' | translate }}</button>
+            <button mat-raised-button color="accent" (click)="onSubmit()">{{ 'login' | translate }}</button>
         </div>
     </form>
 </div>

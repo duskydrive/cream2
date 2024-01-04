@@ -23,9 +23,7 @@
 
         <div class="flex justify-between align-center">
             <button mat-button type="button" routerLink="/login">{{ 'login' | translate }}</button>
-            <button mat-raised-button color="accent">{{ 'register' | translate }}</button>
+            <button mat-raised-button color="accent" (click)="onSubmit()">{{ 'register' | translate }}</button>
         </div>
     </form>
 </div>
-
-<!-- Підключай сходу firebase щоб зробити нормальний auth service одразу, потім guards зроби, а потім подумай структуру бекенда (таблиць) -->

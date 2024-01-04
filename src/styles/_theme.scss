@@ -1,0 +1,44 @@
+@use '@angular/material' as mat;
+@use 'sass:map';
+
+@use 'palette' as palette;
+@use 'typography' as typography;
+@use 'mixins' as mixins;
+
+@include mat.core();
+
+$cream2-primary: mat.define-palette(palette.$primary-palette);
+$cream2-accent: mat.define-palette(palette.$accent-palette);
+$cream2-warn: mat.define-palette(palette.$warn-palette);
+$cream2-foreground: palette.$foreground;
+$cream2-background: palette.$background;
+$cream2-typography: typography.$custom-typography;
+
+$cream2-theme: mat.define-light-theme((
+  color: (
+    primary: $cream2-primary,
+    accent: $cream2-accent,
+    warn: $cream2-warn,
+  ),
+  typography: $cream2-typography,
+  density: -3, // default is 0
+));
+
+$color: map.get($cream2-theme, color);
+
+$background: map.merge(map.get($color, background), $cream2-background);
+$foreground: map.merge(map.get($color, foreground), $cream2-foreground);
+
+// overriding color background/foreground
+$color: map.merge($color, (background: $cream2-background, foreground: $cream2-foreground));
+$cream2-theme: map.merge($cream2-theme, (color: $color));
+
+
+@include mixins.custom-material-button-styles($cream2-theme);
+@include mat.all-component-themes($cream2-theme);
+@include mat.typography-hierarchy($cream2-theme);
+
+@function global-theme() {
+  @return $cream2-theme;
+}
+
