@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs';
+import { Unsub } from 'src/app/core/classes/unsub';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { UserService } from 'src/app/core/services/user.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
@@ -11,9 +12,8 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent extends Unsub {
   registerForm: FormGroup;
-  private authSubscription!: Subscription;
   
   constructor(
     private formBuilder: FormBuilder,
@@ -22,6 +22,8 @@ export class RegisterComponent {
     private userService: UserService,
     private router: Router,
   ) {
+    super();
+
     this.registerForm = this.formBuilder.group({
       email: [null, [Validators.required, Validators.email]],
       name: [null, [Validators.required]],
@@ -35,15 +37,17 @@ export class RegisterComponent {
       return;
     }
 
-    this.authSubscription = this.authService.signUp(
+    this.authService.signUp(
       this.registerForm.get('email')!.value,
       this.registerForm.get('password')!.value,
       this.registerForm.get('name')!.value,
+    ).pipe(
+      takeUntil(this.destroy$),
     ).subscribe({
       next: (result) => {
         console.log('Signup successful', result);
         this.userService.setCurrentUser(result.user);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       },
       error: (error) => {
         console.error('Signup failed', error);
