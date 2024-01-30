@@ -8,7 +8,7 @@ import { Subject } from "rxjs";
 export abstract class Unsub implements OnDestroy {
   protected destroy$ = new Subject<void>;
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }

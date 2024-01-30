@@ -1,0 +1,101 @@
+@use '../../../../styles/utils' as utils;
+@use '../../../../styles/theme' as theme;
+@use '../../../../styles/variables' as vars;
+
+.wrapper {
+  background-color: vars.$background-card;
+  mat-header-cell {
+    background-color: vars.$heading-panel;
+    font-weight: 600;
+  }
+  mat-header-cell, mat-cell {
+    font-family: Roboto, sans-serif;
+    font-size: 18px;
+    border-bottom: none;
+  }
+  mat-row {
+    background-color: #fff;
+    &:nth-child(even) {
+      background-color: vars.$background-card;
+    }
+  }
+}
+
+::ng-deep .plain-input {
+  width: 100% !important; 
+  .mdc-text-field--outlined {
+    padding: 0 !important;
+  }
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border: 0;
+  }
+}
+
+::ng-deep .cdk-column-action {
+  flex: 0 1 auto !important;
+}
+
+.add-row,
+::ng-deep .cdk-column-action {
+  min-width: 115px; 
+}
+
+::ng-deep .cdk-column-amount,
+::ng-deep .cdk-column-balance {
+  flex: 1 1 0px;
+}
+
+::ng-deep .cdk-column-items {
+  flex: 3 1 0px; 
+}
+
+.cdk-drag-preview {
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+  0 8px 10px 1px rgba(0, 0, 0, 0.14),
+  0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  background-color: vars.$heading-panel;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .mat-row:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.custom-row {
+  height: 60px;
+}
+
+.table-footer-bottom,
+.table-footer-top {
+  background: vars.$accent;
+  color: vars.$white-color;
+  div {
+    &:nth-child(1) {
+      flex: 3 1 0px; 
+    }
+    &:nth-child(2) {
+      flex: 1 1 0px;
+    }
+    &:nth-child(3) {
+      flex: 1 1 0px;
+    }
+    &:nth-child(4) {
+      flex: 0 1 auto !important;
+      min-width: 115px; 
+    }
+  }
+}
+
+.table-footer-bottom {
+  background: vars.$primary;
+}
+
+::ng-deep .custom-mat-menu {
+  width: 150px;
+}

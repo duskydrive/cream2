@@ -1,0 +1,79 @@
+@use '../../../../../styles/utils' as utils;
+@use '../../../../../styles/theme' as theme;
+@use '../../../../../styles/typography' as typography;
+@use '../../../../../styles/variables' as variables;
+@use '@angular/material' as mat;
+
+.sidenav {
+  background-color: utils.get-color(theme.global-theme(), primary, 500);
+}
+
+.menu-label {
+  @include mat.typography-level(typography.$custom-typography, 'caption');
+  color: utils.get-color(theme.global-theme(), foreground, 'elevation');
+}
+
+.mob-header {
+  background-color: utils.get-color(theme.global-theme(), primary, 500);
+}
+
+.nav-menu a,
+.nav-menu button {
+  padding: 14px 18px !important;
+  color: variables.$nav-button-color; 
+  @include mat.typography-level(typography.$custom-typography, 'button');
+  &:hover {
+    color: variables.$white-color; 
+    .mat-icon {
+      color: variables.$white-color; 
+    }
+  }
+  .mat-icon {
+    width: 29px;
+    height: 29px;
+  }
+}
+
+.nav-menu a {
+  &:hover {
+    background-color: utils.get-color(theme.global-theme(), accent, 500); 
+    .mat-icon {
+      color: variables.$white-color; 
+    }
+  }
+}
+
+:host ::ng-deep .nav-menu button {
+  justify-content: flex-start;
+}
+
+
+:host ::ng-deep .nav-menu a,
+:host ::ng-deep .nav-menu button {
+  .mat-icon path {
+    stroke: variables.$nav-button-color;
+  } 
+  &:hover {
+    .mat-icon path {
+      stroke: variables.$white-color;
+    }
+  }
+}
+
+.divider {
+  background-color: variables.$nav-button-color;
+}
+
+.profile-thumbnail {
+  .name {
+    @include mat.typography-level(typography.$custom-typography, 'button');
+    color: variables.$white-color;
+  }
+  .circle {
+    background-color: variables.$light-green;
+  }
+  .presence {
+    @include mat.typography-level(typography.$custom-typography, 'subtitle-2');
+    color: variables.$nav-button-color;
+  }
+}

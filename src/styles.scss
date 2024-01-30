@@ -1,9 +1,12 @@
-@use 'styles/theme';
+@use 'styles/utils' as utils;
+@use 'styles/theme' as theme;
+
 @import 'styles/overrides';
 
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
 
 // fix tailwind and material border problem
 .mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field.mat-mdc-form-field .mdc-notched-outline__notch {
@@ -13,3 +16,6 @@
   box-shadow: none !important;
 }
 
+.error-snackbar.mat-mdc-snack-bar-container .mdc-snackbar__label {
+  color: utils.get-color(theme.global-theme(), warn, 500);
+}

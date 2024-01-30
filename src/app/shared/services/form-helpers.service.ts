@@ -6,13 +6,22 @@ import { AbstractControl } from '@angular/forms';
 })
 export class FormHelpersService {
 
-  checkForErrorsIn(formControl: AbstractControl): string {
+  public getError(control: AbstractControl): any {
+    return control ? this.checkForErrorsIn(control) : { key: '' };
+  }
+
+  public checkForErrorsIn(formControl: AbstractControl): any {
     if (formControl.hasError('required')) {
-      return 'errors.required';
+      return { key: 'errors.required' };
     }
 
     if (formControl.hasError('email')) {
-      return 'errors.email';
+      return { key: 'errors.email' };
+    }
+
+    if (formControl.hasError('min')) {
+      const error = formControl.getError('min');
+      return { key: 'errors.min', value: error.min };
     }
 
     return '';

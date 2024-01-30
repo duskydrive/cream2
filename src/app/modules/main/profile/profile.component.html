@@ -1,0 +1,37 @@
+<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-5 lg:!mb-12 ">{{ 'profile' | translate }}</h1>
+
+<form class="form-wrapper p-6 lg:p-10 w-full rounded-md" [formGroup]="profileForm">
+	<div class="mb-6 flex items-center flex-col lg:flex-row text-center lg:text-left lg:mb-10">
+		<ng-container *ngIf="userPhoto$ | async as userPhoto; else noAvatar">
+			<img [src]="userPhoto" alt="User Photo" class="w-24 h-24 rounded-full object-cover mb-3 lg:mb-0 lg:mr-4 cursor-pointer" (click)="fileInput.click()">
+		</ng-container>
+		<ng-template #noAvatar>
+			<img src="assets/images/no-avatar.png" alt="" class="w-24 h-24 rounded-full object-cover mb-3 lg:mb-0 lg:mr-4 cursor-pointer" (click)="fileInput.click()">
+		</ng-template>
+		<input #fileInput type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+		<div>
+			<div class="name mb-3 font-semibold text-3xl">{{ userName }}</div>
+			<div class="email !font-normal">{{ userEmail }}</div>
+		</div>
+	</div>
+
+	<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+		<mat-label>{{ 'name' | translate }}</mat-label>
+		<input matInput type="text" formControlName="name">
+		<mat-error>
+			{{ formHelpersService.getError(getFormControl('name')).key | translate:formHelpersService.getError(getFormControl('name')) }}
+		</mat-error>
+	</mat-form-field>
+	
+	<mat-form-field appearance="outline" class="mb-10 w-full">
+		<mat-label>{{ 'password' | translate }}</mat-label>
+		<input matInput type="password" formControlName="password">
+		<mat-error>
+			{{ formHelpersService.getError(getFormControl('password')).key | translate:formHelpersService.getError(getFormControl('password')) }}
+		</mat-error>
+	</mat-form-field>
+
+	<div class="flex justify-end">
+		<button mat-raised-button color="accent" (click)="onSubmit()">{{ 'save' | translate }}</button>
+	</div>
+</form>

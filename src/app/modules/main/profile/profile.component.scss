@@ -1,0 +1,19 @@
+@use '../../../../styles/utils' as utils;
+@use '../../../../styles/theme' as theme;
+@use '../../../../styles/variables' as vars;
+@use '../../../../styles/typography' as typography;
+@use '@angular/material' as mat;
+
+.form-wrapper {
+  background-color: vars.$background-card;
+}
+
+.name {
+  font-family: vars.$main-font-family;
+}
+
+.email {
+  @include mat.typography-level(typography.$default-typography, 'button');
+  color: utils.get-color(theme.global-theme(), foreground, hint-text); 
+}
+

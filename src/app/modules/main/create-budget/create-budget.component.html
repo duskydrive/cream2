@@ -1,0 +1,115 @@
+<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-5 lg:!mb-12 ">{{ 'create_budget' | translate }}</h1>
+
+<mat-stepper linear #stepper class="form-wrapper pt-5">
+  <mat-step [stepControl]="budgetForm" [editable]="true">
+    <form [formGroup]="budgetForm" class="pt-5 pb-8">
+			<ng-template matStepLabel>{{ 'fill_out_budget_data' | translate }}</ng-template>
+      
+			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'title' | translate }}</mat-label>
+				<input matInput type="text" formControlName="title">
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('title')).key | translate:formHelpersService.getError(getFormControl('title')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'enter_date_range' | translate }}</mat-label>
+				<mat-date-range-input [rangePicker]="picker">
+					<input matStartDate formControlName="dateStart"#dateStart>
+					<input matEndDate formControlName="dateEnd" (dateChange)="onDateChange(dateStart.value, dateEnd.value)" #dateEnd>
+				</mat-date-range-input>
+				<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+				<mat-date-range-picker #picker></mat-date-range-picker>
+			
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('dateEnd')).key | translate:formHelpersService.getError(getFormControl('dateEnd')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'amount' | translate }}</mat-label>
+				<input matInput type="number" formControlName="total" (input)="countDaily()">
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('total')).key | translate:formHelpersService.getError(getFormControl('total')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="mb-16 w-full" color="accent">
+				<mat-label>{{ 'currency' | translate }}</mat-label>
+				<mat-select formControlName="currency">
+					<mat-option *ngFor="let currency of CURRENCY_LIST" [value]="currency">{{ currency }}</mat-option>
+				</mat-select>
+			</mat-form-field>
+      
+			<div class="w-full flex justify-end">
+				<button type="button" mat-raised-button color="accent" matStepperNext>{{ 'next' | translate }}</button>
+      </div>
+    </form>
+  </mat-step>
+
+  <mat-step [stepControl]="expensesForm" [editable]="true">
+    <form [formGroup]="expensesForm" class="pt-5 pb-8">
+      <ng-template matStepLabel>{{ 'fill_out_expenses' | translate }}</ng-template>
+			
+			<div formArrayName="expenses" cdkDropList (cdkDropListDropped)="drop($event)">
+			
+				<div *ngFor="let item of expensesArray.controls; let i = index" formGroupName="{{i}}" cdkDrag class="expense mb-6 flex items-start">
+			
+					<mat-form-field appearance="outline" class="mr-3 w-4/5" color="accent">
+						<mat-label>{{ 'title' | translate }}</mat-label>
+						<input matInput type="text" formControlName="title">
+						<mat-error>
+							{{ formHelpersService.getError(getFormControlFromArray(i, 'title')).key | translate:formHelpersService.getError(getFormControlFromArray(i, 'title')) }}	
+						</mat-error>
+					</mat-form-field>
+
+					<mat-form-field appearance="outline" class="mr-3 w-1/5" color="accent">
+						<mat-label>{{ 'amount' | translate }}</mat-label>
+						<input matInput type="number" formControlName="amount" (input)="onAmountChange()">
+						<mat-error>
+							{{ formHelpersService.getError(getFormControlFromArray(i, 'amount')).key | translate:formHelpersService.getError(getFormControlFromArray(i, 'amount')) }}
+						</mat-error>
+					</mat-form-field>
+
+					<mat-icon class="mt-2.5 cursor-pointer" (click)="removeExpenseItem(i)">delete</mat-icon>
+				</div>
+			</div>
+
+			
+			
+			<div class="mb-6 flex items-start">
+		
+				<div class="mr-3 w-4/5"></div>
+
+				<mat-form-field appearance="outline" class="mr-3 w-1/5" color="accent">
+					<mat-label>{{ 'add_expenses' | translate }}</mat-label>
+					<input matInput type="number" #rowAmount value="1">
+				</mat-form-field>
+
+				<mat-icon class="mt-2.5 cursor-pointer" (click)="addExpenseItem(+rowAmount.value)">add</mat-icon>
+			</div>
+
+			<div class="mb-10">
+				<div class="flex items-center">
+					<span class="!mr-1 mat-body-1">{{ 'available_budget' | translate }}:</span>
+					<span class="mat-body-1"><b>{{ getFormControl('total').value }}</b></span>
+				</div>
+				<div class="flex items-center">
+					<span class="!mr-1 mat-body-1">{{ 'planned_expenses' | translate }}:</span>
+					<span class="mat-body-1"><b>{{ getTotalExpensesAsObservable() | async }}</b></span>
+				</div>
+				<div class="flex items-center">
+					<span class="!mr-1 mat-body-1">{{ 'daily' | translate }}:</span>
+					<span class="mat-body-1" [ngClass]="{'text-red-500': (getDailyAsObservable() | async)! < 1}"><b>{{ getDailyAsObservable() | async }}</b></span>
+				</div>
+			</div>
+			
+			<div class="w-full flex justify-between">
+				<button type="button" mat-raised-button color="accent" matStepperPrevious>{{ 'back' | translate }}</button>
+        <button mat-raised-button color="accent" (click)="createBudget()">{{ 'create' | translate }}</button>
+      </div>
+      
+    </form>
+  </mat-step>
+</mat-stepper>

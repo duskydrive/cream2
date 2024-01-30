@@ -1,5 +1,12 @@
 @use 'utils' as utils;
 @use 'theme' as theme;
 
+$main-font-family: Raleway, sans-serif;
 $border-color: #D0D4DD;
+$nav-button-color: #949896;
+$white-color: #FFFFFF;
+$light-green: #76FCB4;
 $background-card: utils.get-color(theme.global-theme(), 'background', 'card');
+$heading-panel: #f1f3f0;
+$accent: utils.get-color(theme.global-theme(), 'accent', 500);
+$primary: utils.get-color(theme.global-theme(), 'primary', 500);

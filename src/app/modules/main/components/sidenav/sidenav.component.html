@@ -1,0 +1,63 @@
+<mat-sidenav-container class="h-screen">
+	<mat-sidenav #sidenav class="sidenav py-5 px-8 w-full lg:w-72 2xl:w-80">
+		<div class="flex flex-col justify-between align-center h-full">
+			<div class="flex justify-between items-center mb-6">
+				<mat-icon svgIcon="sidenav-close" (click)="toggleSidenav()" *ngIf="!isLargeScreen"></mat-icon>
+				<img src="assets/images/logo-white.svg" alt="logo" class="w-28 lg:w-40 xl:w-44 lg:ml-6">
+			</div>
+
+			<div>
+				<div class="uppercase menu-label ml-4 mb-2">menu</div>
+				<div class="nav-menu">
+					<a class="flex rounded items-center" [routerLink]="['budget']">
+						<mat-icon svgIcon="sidenav-dashboard" class="mr-5 text-7xl"></mat-icon>
+						<span>{{ 'budget' | translate }}</span>
+					</a>
+					<a class="flex rounded items-center" [routerLink]="['create']">
+						<mat-icon svgIcon="sidenav-create" class="mr-5 text-7xl"></mat-icon>
+						<span>{{ 'create_budget' | translate }}</span>
+					</a>
+					<a class="flex rounded items-center" [routerLink]="['spend']">
+						<mat-icon svgIcon="sidenav-spend" class="mr-5 text-7xl"></mat-icon> 
+						<span>{{ 'spend' | translate }}</span>
+					</a>
+				</div>
+			</div>
+
+			<div class="nav-menu">
+				<button mat-button class="w-full" (click)="logout()">
+					<mat-icon svgIcon="sidenav-logout" class="mr-5 text-7xl"></mat-icon> 
+						<span>{{ 'logout' | translate }}</span>
+				</button>
+				
+				<div class="divider w-full mt-4 -mr-4 mb-7 h-px"></div>
+
+				<div class="profile-thumbnail flex items-center pl-5 cursor-pointer" [routerLink]="['profile']">
+					<ng-container *ngIf="userPhoto$ | async as userPhoto; else noAvatar">
+						<img [src]="userPhoto" alt="User Photo" class="w-12 h-12 rounded-full object-cover mr-4">
+					</ng-container>
+					<ng-template #noAvatar>
+						<img src="assets/images/no-avatar.png" alt="" class="w-12 h-12 rounded-full object-cover mr-4">
+					</ng-template>
+					<div>
+						<div class="name mb-3 truncate">{{ userName$ | async }}</div>
+						<div class="flex items-center">
+							<div class="circle w-1.5 h-1.5 rounded-full mr-2"></div>
+							<div class="presence">{{ 'online' | translate }}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+	</mat-sidenav>
+	<mat-sidenav-content>
+		<div *ngIf="!isLargeScreen" class="mob-header flex justify-between items-center py-3 px-5 md:py-5 md:px-8 text-white">
+			<mat-icon (click)="toggleSidenav()">menu</mat-icon>
+			<img src="assets/images/logo-white.svg" alt="logo" class="w-28">
+		</div>
+		<div class="p-5 lg:p-12 min-h-screen">
+			<ng-content></ng-content>
+		</div>
+	</mat-sidenav-content>
+</mat-sidenav-container>

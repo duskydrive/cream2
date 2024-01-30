@@ -1,16 +1,17 @@
 import { inject } from "@angular/core";
-import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
-import { map, take } from "rxjs";
+import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from "@angular/router";
+import { Observable, map, take } from "rxjs";
 import { AuthService } from "../services/auth.service";
+import { User } from '@angular/fire/auth';
 
-export const checkAuthState: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+export const checkAuthState: CanActivateFn = (route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree => {
+  const authService: AuthService = inject(AuthService);
+  const router: Router = inject(Router);
   
-  return authService.getAuthStatus().pipe(
+  return authService.getAuthState().pipe(
     take(1),
-    map(user => {
-      const isLoginOrRegisterRoute = ['login', 'register'].includes(route.url.toString());
+    map((user: User | null) => {
+      const isLoginOrRegisterRoute: boolean = ['login', 'register'].includes(route.url.toString());
         
       if (isLoginOrRegisterRoute) {
         return user ? router.createUrlTree(['/']) : true;

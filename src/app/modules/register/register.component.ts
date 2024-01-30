@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { takeUntil } from 'rxjs';
-import { Unsub } from 'src/app/core/classes/unsub';
-import { AuthService } from 'src/app/core/services/auth.service';
-import { UserService } from 'src/app/core/services/user.service';
+
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
+import { Unsub } from 'src/app/core/classes/unsub';
+
+import { Store } from '@ngrx/store';
+import { AppState } from 'src/app/store';
+import * as UserActions from 'src/app/store/user/user.actions';
 
 @Component({
   selector: 'app-register',
@@ -13,14 +14,12 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
   styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent extends Unsub {
-  registerForm: FormGroup;
-  
+  public registerForm: FormGroup;
+
   constructor(
-    private formBuilder: FormBuilder,
     public formHelpersService: FormHelpersService,
-    private authService: AuthService,
-    private userService: UserService,
-    private router: Router,
+    private store: Store<AppState>,
+    private formBuilder: FormBuilder,
   ) {
     super();
 
@@ -31,27 +30,16 @@ export class RegisterComponent extends Unsub {
     });
   }
 
-  onSubmit() {
+  public onSubmit() {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
     }
 
-    this.authService.signUp(
-      this.registerForm.get('email')!.value,
-      this.registerForm.get('password')!.value,
-      this.registerForm.get('name')!.value,
-    ).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe({
-      next: (result) => {
-        console.log('Signup successful', result);
-        this.userService.setCurrentUser(result.user);
-        this.router.navigate(['/']);
-      },
-      error: (error) => {
-        console.error('Signup failed', error);
-      }
-    })
+    this.store.dispatch(UserActions.registerUser({ 
+      email: this.registerForm.get('email')!.value, 
+      password: this.registerForm.get('password')!.value,
+      name: this.registerForm.get('name')!.value,
+    }));
   }
 }

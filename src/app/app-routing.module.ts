@@ -17,7 +17,9 @@ const routes: Routes = [
     path: '',
     loadChildren: () => import('./modules/main/main.module').then(m => m.MainModule),
     canActivate: [checkAuthState],
-  }
+  },
+  // TODO make notfound component and test with Auth creds
+  // { path: '**', component: NotFoundComponent }
 ];
 
 @NgModule({

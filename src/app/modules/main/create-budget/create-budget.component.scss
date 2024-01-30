@@ -1,0 +1,26 @@
+@use '../../../../styles/utils' as utils;
+@use '../../../../styles/theme' as theme;
+@use '../../../../styles/variables' as vars;
+
+app-create-budget {
+  .mat-step-label.mat-step-label-active.mat-step-label-selected {
+    font-weight: bold;
+  }
+  .mat-step-icon.mat-step-icon-selected {
+    background-color: utils.get-color(theme.global-theme(), accent, 500);
+  }
+  .mat-step-header.cdk-focused,
+  .mat-step-header.cdk-program-focused,
+  .mat-step-header:hover,
+  .mat-step-header:hover:not([aria-disabled]), 
+  .mat-step-header:hover[aria-disabled=false] {
+    background-color: transparent !important;
+    .mat-step-icon {
+      background-color: utils.get-color(theme.global-theme(), accent, 500);
+    }
+  }
+}
+
+.expense {
+  background-color: vars.$background-card;
+}

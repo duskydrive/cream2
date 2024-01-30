@@ -12,7 +12,7 @@ $cream2-accent: mat.define-palette(palette.$accent-palette);
 $cream2-warn: mat.define-palette(palette.$warn-palette);
 $cream2-foreground: palette.$foreground;
 $cream2-background: palette.$background;
-$cream2-typography: typography.$custom-typography;
+$cream2-typography: typography.$default-typography;
 
 $cream2-theme: mat.define-light-theme((
   color: (

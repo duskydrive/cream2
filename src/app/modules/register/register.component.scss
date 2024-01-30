@@ -1,1 +1,5 @@
-@use '../../shared/styles/form-wrapper.scss';
+@use '../../../styles/variables' as vars;
+
+.form-wrapper {
+  background-color: vars.$background-card;
+}

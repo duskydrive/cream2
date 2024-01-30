@@ -1,8 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Auth, authState } from '@angular/fire/auth';
-import { takeUntil } from 'rxjs';
+
+import { Observable, map } from 'rxjs';
+
 import { Unsub } from './core/classes/unsub';
+
+import { Store, select } from '@ngrx/store';
+import { ISpinnerState } from './store/spinner/spinner.state';
 
 @Component({
   selector: 'app-root',
@@ -10,31 +14,23 @@ import { Unsub } from './core/classes/unsub';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent extends Unsub implements OnInit {
-  private auth: Auth = inject(Auth);
-  
+  public isLoading$: Observable<boolean>;
+
   constructor(
     private translate: TranslateService,
+    private store: Store<{ spinner: ISpinnerState }>
   ) {
     super();
+
+    this.isLoading$ = this.store.pipe(
+      select('spinner'),
+      map(state => state.activeRequests > 0)
+    );
   }
 
-  switchLanguage(language: string) {
+  private switchLanguage(language: string) {
     this.translate.use(language);
   }
 
-  ngOnInit() {
-    authState(this.auth).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(user => {
-      if (!user) {
-        // User is logged out, redirect or handle as needed
-        console.log('app -> authState(this.auth) -> User is logged out');
-        // Handle logged out state
-      } else {
-        // User is logged in, continue with the session
-        console.log('app -> authState(this.auth) -> User is logged in', user);
-        // Handle logged in state
-      }
-    });
-  }
+  public ngOnInit() {}
 }

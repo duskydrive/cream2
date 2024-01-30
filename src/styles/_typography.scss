@@ -1,6 +1,6 @@
 @use '@angular/material' as mat;
 
-$custom-typography: mat.define-typography-config(
+$default-typography: mat.define-typography-config(
   $font-family: 'Raleway, sans-serif',
 
   $headline-1: mat.define-typography-level(70px, normal, 400),
@@ -17,10 +17,9 @@ $custom-typography: mat.define-typography-config(
   $button: mat.define-typography-level(18px, normal, 500, $font-family: 'Roboto, sans-serif'),
 );
 
-$body-1-raleway: mat.define-typography-level(
-  $font-family: 'Roboto, sans-serif',
-  $font-weight: 400,
-  $font-size: 18px,
-  $line-height: normal,
-  $letter-spacing: normal,
+$custom-typography: mat.define-typography-config(
+  $font-family: 'Raleway, sans-serif',
+  $caption: mat.define-typography-level(15px, normal, 700),
+  $subtitle-2: mat.define-typography-level(11px, normal, 700),
+  $button: mat.define-typography-level(18px, normal, 500),
 );
