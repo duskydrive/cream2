@@ -15,6 +15,7 @@ import { debounceTime, distinctUntilChanged, filter, take, takeUntil } from 'rxj
 import { IBudget } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
+import { isEqual } from 'lodash';
 
 @Component({
   selector: 'app-budget',
@@ -64,7 +65,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     });
 
     this.store.select(BudgetSelectors.selectCurrentBudget).pipe(
-      distinctUntilChanged(),
+      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       takeUntil(this.destroy$),
     ).subscribe((budget: IBudget | null) => {
       // console.log('budget', budget)

@@ -62,8 +62,8 @@ export function createTranslateLoader(http: HttpClient) {
     AppEffectsModule,
     // TODO it should be: !environment.production ? StoreDevtoolsModule.instrument() : []
     StoreDevtoolsModule.instrument({
-      maxAge: 25, // Retains last 25 states
-      autoPause: true, // Pauses recording actions and state changes when the extension window is not open
+      // maxAge: 25, // Retains last 25 states
+      // autoPause: true, // Pauses recording actions and state changes when the extension window is not open
       trace: true, // Enable tracing
       features: {
         

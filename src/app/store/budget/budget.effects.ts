@@ -87,8 +87,10 @@ export class BudgetEffects {
       ofType(BudgetActions.loadBudget),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       switchMap(({ userId, budgetId }) => {
+        alert('effect -> inside loadBudget')
         return this.budgetService.getBudget(userId, budgetId).pipe(
           map((budget: IBudget) => {  
+            alert('effect -> inside loadBudget map, loadBudgetSuccess')
             return BudgetActions.loadBudgetSuccess( { budget });
           }),
           catchError((error: FirebaseError) => {
@@ -102,62 +104,67 @@ export class BudgetEffects {
   );
 
   reorderItemsAction$ = createEffect(() => 
-    this.actions$.pipe(
-      ofType(BudgetActions.reorderItemsAction),
-      // tap(() => this.store.dispatch(SpinnerActions.startRequest())),
-      map(({ previousIndex, currentIndex, items }) => {
-        const reorderedItems = [...items];
-        moveItemInArray(reorderedItems, previousIndex, currentIndex);
-        const reindexedExpenses = reorderedItems.map((expense, index) => ({
-          ...expense,
-          orderIndex: index
-        }));
-
-        if (reindexedExpenses) { 
-          return BudgetActions.reorderItemsActionSuccess({ expenses: reindexedExpenses });
-        } else {
-          return BudgetActions.reorderItemsActionFailure({ error: 'some error' });
-        }
-      }),
-      // tap(() => this.store.dispatch(SpinnerActions.endRequest())),
-    )
-  );
-
-  triggerSaveOrderToBackend$ = createEffect(() => 
   this.actions$.pipe(
-    ofType(BudgetActions.reorderItemsActionSuccess),
-    map((action) => {
-      const userId = 'KZ1BusePAMXIBPP4foayZkg5Wun1'; // Replace with actual userId logic
-      const budgetId = 'qrYN1r7lU6f9rli2j500'; // Replace with actual budgetId logic
+    ofType(BudgetActions.reorderItemsAction),
+    // tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+    map(({ previousIndex, currentIndex, items }) => {
+      const reorderedItems = [...items];
+      moveItemInArray(reorderedItems, previousIndex, currentIndex);
+      const reindexedExpenses = reorderedItems.map((expense, index) => ({
+        ...expense,
+        orderIndex: index
+      }));
 
-      // Wrap the action in an observable
-      return BudgetActions.changeExpensesOrder({ 
-        userId: userId, 
-        budgetId: budgetId, 
-        expenses: action.expenses,
-      });
+      if (reindexedExpenses) { 
+        return BudgetActions.reorderItemsActionSuccess({ expenses: reindexedExpenses });
+      } else {
+        return BudgetActions.reorderItemsActionFailure({ error: 'some error' });
+      }
     }),
+    // tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+  )
+);
+triggerSaveOrderToBackend$ = createEffect(() => 
+this.actions$.pipe(
+  ofType(BudgetActions.reorderItemsActionSuccess),
+  withLatestFrom(
+    this.store.select(UserSelectors.selectUserId),
+    this.store.select(BudgetSelectors.selectCurrentBudget)
+  ),
+  map(([action, userId, currentBudget]) => {
+    if (!userId || !currentBudget) {
+      // Handle the case where user or budget is not available
+      return { type: '[Error] Missing User or Budget' };
+    }
+
+    const budgetId = currentBudget.id; // Assuming 'id' is the correct property
+
+    return BudgetActions.changeExpensesOrder({ 
+      userId, 
+      budgetId: budgetId, 
+      expenses: action.expenses,
+    });
+  }),
+)
+);
+
+saveExpensesOrderRemoteAction$ = createEffect(() => 
+  this.actions$.pipe(
+    ofType(BudgetActions.changeExpensesOrder),
+    switchMap(action => {
+      return this.budgetService.updateExpensesOrder(action.userId, action.budgetId, action.expenses).pipe(
+        map((items) => {
+          console.log('items:', items)
+          return BudgetActions.changeExpensesOrderSuccess()
+        }),
+        catchError(error => {
+          return of(BudgetActions.changeExpensesOrderFailure({ error }))
+        })
+      )
+    }
+    )
   )
 );
 
-
-  saveExpensesOrderRemoteAction$ = createEffect(() => 
-    this.actions$.pipe(
-      ofType(BudgetActions.changeExpensesOrder),
-      switchMap(action => {
-        // return of(BudgetActions.changeExpensesOrderFailure({ error: 'test' }))
-        return this.budgetService.updateExpensesOrder(action.userId, action.budgetId, action.expenses).pipe(
-          map((items) => {
-            console.log('items:', items)
-            return BudgetActions.changeExpensesOrderSuccess()
-          }),
-          catchError(error => {
-            return of(BudgetActions.changeExpensesOrderFailure({ error }))
-          })
-        )
-      }
-      )
-    )
-  );
 
 }
