@@ -6,7 +6,6 @@ import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
 export interface IBudgetState {
   budget: IBudget | null,
   budgetTitlesAndIds: IBudgetTitleAndId[] | null,
-  expenses: IExpense[],
   loading: boolean,
   error: any,
 }
@@ -14,7 +13,6 @@ export interface IBudgetState {
 export const initialState: IBudgetState = {
   budget: null,
   budgetTitlesAndIds: [],
-  expenses: [],
   loading: false,
   error: null,
 }
@@ -34,10 +32,6 @@ export const budgetReducer = createReducer(
     ...state,
     loading: false,
     error,
-  })),
-  on(BudgetActions.setExpenses, (state, { expenses }) => ({
-    ...state,
-    expenses
   })),
   on(BudgetActions.createBudget, state => ({
     ...state,

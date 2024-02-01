@@ -8,6 +8,7 @@ export interface IBudget {
   total: number,
   daily: number,
   currency: string,
+  expenses: IExpense[],
 }
 
 export interface IBudgetPayload {

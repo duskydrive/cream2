@@ -17,11 +17,6 @@ export const loadBudgetFailure = createAction(
   props<{ error: any }>()
 );
 
-export const setExpenses = createAction(
-  '[Budget] Set Expenses',
-  props<{ expenses: IExpense[] }>()
-);
-
 export const createBudget = createAction(
   '[Budget] Create Budget',
   props<{ userId: string, budgetData: IBudgetPayload, expenses: IExpensePayload[] }>()

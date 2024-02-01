@@ -60,19 +60,16 @@ export class BudgetComponent extends Unsub implements OnInit {
       filter((budgetsTitlesAndIds: IBudgetTitleAndId[] | null): budgetsTitlesAndIds is IBudgetTitleAndId[] => !!budgetsTitlesAndIds),
       takeUntil(this.destroy$),
     ).subscribe((budgetsTitlesAndIds: IBudgetTitleAndId[]) => {
-      alert('ngOnInit BudgetSelectors.selectBudgetsTitlesAndIds')
       this.budgets = budgetsTitlesAndIds;
     });
 
     this.store.select(BudgetSelectors.selectCurrentBudget).pipe(
       distinctUntilChanged(),
-      // debounceTime(300),
       takeUntil(this.destroy$),
     ).subscribe((budget: IBudget | null) => {
-      alert('ngOnInit BudgetSelectors.selectCurrentBudget')
       // console.log('budget', budget)
       this.currentBudget = budget;
-      // if (this.currentBudget) this.dataSource = this.currentBudget.expenses;
+      if (this.currentBudget) this.dataSource = this.currentBudget.expenses;
     });
   }
 
@@ -81,7 +78,6 @@ export class BudgetComponent extends Unsub implements OnInit {
       filter((userId: string | null): userId is string => !!userId),
       takeUntil(this.destroy$),
     ).subscribe((userId: string) => {
-      alert('ngOnInit UserSelectors.selectUserId (inside change budget)')
       this.store.dispatch(BudgetActions.loadBudget({ userId, budgetId }));
     });
   }

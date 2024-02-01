@@ -50,12 +50,9 @@ export class BudgetService {
 public getBudget(userId: string, budgetId: string): Observable<any> {
   const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
 
-  alert('getBudget');
   return docData(budgetDocRef).pipe(
     switchMap(budget => {
       if (!budget) return from([]);
-      alert('1 getBudget inside switchMap');
-
       // Create a query for the expenses collection, ordered by 'orderIndex'
       const expensesQuery = query(
         collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`),
@@ -66,7 +63,6 @@ public getBudget(userId: string, budgetId: string): Observable<any> {
       return combineLatest([of(budget), collectionData(expensesQuery, { idField: 'id' })]);
     }),
     map(([budget, expenses]) => {
-      alert('2 getBudget inside map');
       if (!budget) return null;
       return { 
         ...budget, 
@@ -116,14 +112,11 @@ public getBudget(userId: string, budgetId: string): Observable<any> {
   //   return updateObservables.length > 0 ? forkJoin(updateObservables).pipe(map(() => {})) : of(void 0);
   // }
   public updateExpensesOrder(userId: string, budgetId: string, expenses: IExpense[]): Observable<any> {
-    alert('1 updateExpensesOrder')
     const batch = writeBatch(this.firestore);
-    alert('2 updateExpensesOrder')
     expenses.forEach(expense => {
       const expenseRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/expenses/${expense.id}`);
       batch.update(expenseRef, { orderIndex: expense.orderIndex });
     });
-    alert('3 updateExpensesOrder')
     
     return from(batch.commit());
   }

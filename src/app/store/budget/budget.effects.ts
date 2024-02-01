@@ -87,14 +87,11 @@ export class BudgetEffects {
       ofType(BudgetActions.loadBudget),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       switchMap(({ userId, budgetId }) => {
-        alert('load budget triggered')
         return this.budgetService.getBudget(userId, budgetId).pipe(
           map((budget: IBudget) => {  
-            alert('load budget triggere map')
             return BudgetActions.loadBudgetSuccess( { budget });
           }),
           catchError((error: FirebaseError) => {
-            alert('load budget triggered error')
             this.snackbarService.showError(error.code || 'some_error');
             return of(BudgetActions.loadBudgetFailure( { error }));
           }),
@@ -109,17 +106,14 @@ export class BudgetEffects {
       ofType(BudgetActions.reorderItemsAction),
       // tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       map(({ previousIndex, currentIndex, items }) => {
-        alert('effects -> inside BudgetActions.reorderItemsAction')
         const reorderedItems = [...items];
         moveItemInArray(reorderedItems, previousIndex, currentIndex);
-        alert('effects -> moveItemInArray')
         const reindexedExpenses = reorderedItems.map((expense, index) => ({
           ...expense,
           orderIndex: index
         }));
 
-        if (reindexedExpenses) {
-          alert('effects -> trigger reorderItemsActionSuccess')
+        if (reindexedExpenses) { 
           return BudgetActions.reorderItemsActionSuccess({ expenses: reindexedExpenses });
         } else {
           return BudgetActions.reorderItemsActionFailure({ error: 'some error' });
@@ -133,8 +127,6 @@ export class BudgetEffects {
   this.actions$.pipe(
     ofType(BudgetActions.reorderItemsActionSuccess),
     map((action) => {
-      alert('effects -> inside reorderItemsActionSuccess');
-
       const userId = 'KZ1BusePAMXIBPP4foayZkg5Wun1'; // Replace with actual userId logic
       const budgetId = 'qrYN1r7lU6f9rli2j500'; // Replace with actual budgetId logic
 
@@ -153,17 +145,13 @@ export class BudgetEffects {
     this.actions$.pipe(
       ofType(BudgetActions.changeExpensesOrder),
       switchMap(action => {
-        alert('effects -> inside changeExpensesOrder')
         // return of(BudgetActions.changeExpensesOrderFailure({ error: 'test' }))
         return this.budgetService.updateExpensesOrder(action.userId, action.budgetId, action.expenses).pipe(
           map((items) => {
             console.log('items:', items)
-            alert('effects -> trigger changeExpensesOrderSuccess')
             return BudgetActions.changeExpensesOrderSuccess()
           }),
           catchError(error => {
-            // alert('changeExpensesOrder error');
-            alert('effects -> trigger changeExpensesOrderFailure')
             return of(BudgetActions.changeExpensesOrderFailure({ error }))
           })
         )
