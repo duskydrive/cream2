@@ -1,11 +1,12 @@
 import { createReducer, on } from "@ngrx/store";
-import { IBudget } from "src/app/shared/models/budget.interface";
+import { IBudget, IExpense } from "src/app/shared/models/budget.interface";
 import * as BudgetActions from "./budget.actions";
 import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
 
 export interface IBudgetState {
   budget: IBudget | null,
   budgetTitlesAndIds: IBudgetTitleAndId[] | null,
+  expenses: IExpense[],
   loading: boolean,
   error: any,
 }
@@ -13,6 +14,7 @@ export interface IBudgetState {
 export const initialState: IBudgetState = {
   budget: null,
   budgetTitlesAndIds: [],
+  expenses: [],
   loading: false,
   error: null,
 }
@@ -32,6 +34,10 @@ export const budgetReducer = createReducer(
     ...state,
     loading: false,
     error,
+  })),
+  on(BudgetActions.setExpenses, (state, { expenses }) => ({
+    ...state,
+    expenses
   })),
   on(BudgetActions.createBudget, state => ({
     ...state,
@@ -73,6 +79,32 @@ export const budgetReducer = createReducer(
   on(BudgetActions.loadBudgetsTitlesAndIdsFailure, (state, { error }) => ({
     ...state,
     loading: false,
+    error,
+  })),
+  on(BudgetActions.changeExpensesOrder, state => ({
+    ...state,
+    // loading: true,
+  })),
+  on(BudgetActions.changeExpensesOrderSuccess, state => ({
+    ...state,
+  })),
+  on(BudgetActions.changeExpensesOrderFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.reorderItemsAction, state => ({
+    ...state,
+  })),
+  on(BudgetActions.reorderItemsActionSuccess, (state, { expenses }) => ({
+    ...state,
+    budget: {
+      ...state.budget!,
+      expenses,
+    }
+  })),
+  on(BudgetActions.reorderItemsActionFailure, (state, { error }) => ({
+    ...state,
     error,
   })),
 );

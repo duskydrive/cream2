@@ -1,10 +1,11 @@
-import { IExpense, IUnorderedExpense } from "./shared/models/budget.interface"
+import { IExpensePayload, IExpenseTitleAndAmount } from "./shared/models/budget.interface"
 
-export const toIndexArray = (arr: IUnorderedExpense[]): IExpense[] => {
-  return arr.map((expense: IUnorderedExpense, index: number) => {
+export const prepareExpenses = (arr: IExpenseTitleAndAmount[]): IExpensePayload[] => {
+  return arr.map((expense: IExpenseTitleAndAmount, index: number) => {
     return {
       ...expense,
       orderIndex: index,
+      balance: expense.amount,
     };
   });
 }

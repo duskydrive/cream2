@@ -3,93 +3,96 @@
 
 	<mat-form-field appearance="outline" color="accent">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
-		<mat-select>
+		<mat-select (selectionChange)="changeBudget($event.value)">
 			<mat-option *ngFor="let budget of budgets" [value]="budget.id">{{ budget.title }}</mat-option>
 		</mat-select>
 	</mat-form-field>
 </div>
 
 <div class="p-10 wrapper">
-	<div class="mb-8 flex justify-between items-center">
-		<h3 class="!mb-0 !font-medium">{{ 'January 2024' | translate }}</h3>
-		
-		<div class="flex items-center">
-			<div class="font-semibold mr-3">08.01.2024 - 07.02.2024 (31 DAYS)</div>
-			<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">more_horiz</mat-icon>
-		</div>
-	</div>
-
-	<div class="mat-elevation-z8">
-		<mat-table 
-		#table
-		[dataSource]="dataSource"
-		cdkDropList
-		(cdkDropListDropped)="drop($event)"
-		cdkDropListData="dataSource"
-		[cdkDropListDisabled]="dragDisabled">
-	
-			<ng-container matColumnDef="items">
-				<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> Items </mat-header-cell>
-				<mat-cell *matCellDef="let element" class="!py-2 !px-9">
-					<mat-form-field class="plain-input" appearance="outline">
-						<input matInput class="w-100" [value]="element.title" (blur)="onBlur()">
-					</mat-form-field>
-				</mat-cell>
-			</ng-container>
-	
-			<ng-container matColumnDef="amount">
-				<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Amount </mat-header-cell>
-				<mat-cell *matCellDef="let element" class="!py-2 !px-6">
-					<mat-form-field class="plain-input" appearance="outline">
-						<input matInput class="w-100" [value]="element.amount">
-					</mat-form-field>
-				</mat-cell>
-			</ng-container>
-	
-			<ng-container matColumnDef="balance">
-				<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Balance </mat-header-cell>
-				<mat-cell *matCellDef="let element" class="!py-2 !px-6">
-					<mat-form-field class="plain-input" appearance="outline">
-						<input matInput class="w-100" [value]="element.balance">
-					</mat-form-field>
-				</mat-cell>
-			</ng-container>
-	
-			<ng-container matColumnDef="action">
-				<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase">Action</mat-header-cell>
-				<mat-cell *matCellDef="let element" class="!py-2 !px-6 justify-center">
-					<mat-icon class="cursor-pointer" (mousedown)="dragDisabled = false;">drag_indicator</mat-icon>
-					<mat-icon class="cursor-pointer">delete</mat-icon>
-				</mat-cell>
-			</ng-container>
-	
+	<div *ngIf="currentBudget; else noBudget">
+		<div class="mb-8 flex justify-between items-center">
+			<!-- <h3 class="!mb-0 !font-medium">{{ currentBudget.title }}</h3> -->
 			
-			<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-			<mat-row *matRowDef="let row; columns: displayedColumns" cdkDrag
-			[cdkDragData]="row"></mat-row>
-		</mat-table>
-
-		<div class="flex justify-end custom-row">
-			<div class="add-row py-2 px-6 flex justify-center items-center">
-				<mat-icon class="cursor-pointer ml-6">add</mat-icon>
+			<div class="flex items-center">
+				<!-- <div class="font-semibold mr-3">{{ formatDates(currentBudget.dateStart, currentBudget.dateEnd) }}</div> -->
+				<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">more_horiz</mat-icon>
 			</div>
 		</div>
-
-		<div class="table-footer-top h-16 flex items-center font-semibold uppercase text-lg">
-			<div class="px-9">Budget planned:</div>
-			<div class="px-6">10000 USD</div>
-			<div class="px-6"></div>
-			<div class="px-6"></div>
-		</div>
-
-		<div class="table-footer-bottom rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase text-2xl">
-			<div class="px-9">Daily budget:</div>
-			<div class="px-6">35 USD</div>
-			<div class="px-6"></div>
-			<div class="px-6"></div>
+	
+		<div class="mat-elevation-z8">
+			<mat-table 
+			#table
+			[dataSource]="dataSource"
+			cdkDropList
+			(cdkDropListDropped)="drop($event)"
+			cdkDropListData="dataSource"
+			[cdkDropListDisabled]="dragDisabled">
+		
+				<ng-container matColumnDef="items">
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> Items </mat-header-cell>
+					<mat-cell *matCellDef="let element" class="!py-2 !px-9">
+						<mat-form-field class="plain-input" appearance="outline">
+							<input matInput class="w-100" [value]="element.title" (blur)="onBlur()">
+						</mat-form-field>
+					</mat-cell>
+				</ng-container>
+		
+				<ng-container matColumnDef="amount">
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Amount </mat-header-cell>
+					<mat-cell *matCellDef="let element" class="!py-2 !px-6">
+						<mat-form-field class="plain-input" appearance="outline">
+							<input matInput class="w-100" [value]="element.amount">
+						</mat-form-field>
+					</mat-cell>
+				</ng-container>
+		
+				<ng-container matColumnDef="balance">
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Balance </mat-header-cell>
+					<mat-cell *matCellDef="let element" class="!py-2 !px-6">
+						<mat-form-field class="plain-input" appearance="outline">
+							<input matInput class="w-100" [value]="element.balance">
+						</mat-form-field>
+					</mat-cell>
+				</ng-container>
+		
+				<ng-container matColumnDef="action">
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase">Action</mat-header-cell>
+					<mat-cell *matCellDef="let element" class="!py-2 !px-6 justify-center">
+						<mat-icon class="cursor-pointer" (mousedown)="dragDisabled = false;">drag_indicator</mat-icon>
+						<mat-icon class="cursor-pointer">delete</mat-icon>
+					</mat-cell>
+				</ng-container>
+		
+				
+				<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+				<mat-row *matRowDef="let row; columns: displayedColumns" cdkDrag
+				[cdkDragData]="row"></mat-row>
+			</mat-table>
+	
+			<div class="flex justify-end custom-row">
+				<div class="add-row py-2 px-6 flex justify-center items-center">
+					<mat-icon class="cursor-pointer ml-6">add</mat-icon>
+				</div>
+			</div>
+	
+			<div class="table-footer-top h-16 flex items-center font-semibold uppercase text-lg">
+				<div class="px-9">Budget planned:</div>
+				<!-- <div class="px-6">{{ currentBudget.total }} {{ currentBudget.currency }}</div> -->
+				<div class="px-6"></div>
+				<div class="px-6"></div>
+			</div>
+	
+			<div class="table-footer-bottom rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase text-2xl">
+				<div class="px-9">Daily budget:</div>
+				<!-- <div class="px-6">{{ currentBudget.daily }} {{ currentBudget.currency }}</div> -->
+				<div class="px-6"></div>
+				<div class="px-6"></div>
+			</div>
 		</div>
 	</div>
 
+	<ng-template #noBudget>No budget selected. Select or create new budget</ng-template>
 
 </div>
 

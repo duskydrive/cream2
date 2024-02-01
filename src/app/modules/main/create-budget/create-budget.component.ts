@@ -12,8 +12,8 @@ import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { CURRENCY_LIST } from './create-budget.constants';
-import { IBudgetPayload, IExpense, IUnorderedExpense } from 'src/app/shared/models/budget.interface';
-import { toIndexArray } from 'src/app/app.helpers';
+import { IBudgetPayload, IExpensePayload } from 'src/app/shared/models/budget.interface';
+import { prepareExpenses } from 'src/app/app.helpers';
 
 @Component({
   selector: 'app-create-budget',
@@ -112,7 +112,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
 
   public countDaily() {
     this.getTotalExpensesAsObservable().subscribe((totalExpenses: number) => {
-      this.daily$.next((this.getFormControl('total').value - totalExpenses) / this.totalDays);
+      this.daily$.next(Math.floor((this.getFormControl('total').value - totalExpenses) / this.totalDays));
     });
   }
 
@@ -137,8 +137,8 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
 
     this.getDailyAsObservable().pipe(
       takeUntil(this.destroy$),
-    ).subscribe((res: number) => {
-      if (res < 1) {
+    ).subscribe((daily: number) => {
+      if (daily < 1) {
         this.snackbarService.showError('daily_error');
         return;
       };
@@ -148,9 +148,10 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
         dateStart: Timestamp.fromDate( this.getFormControl('dateStart').value ),
         dateEnd: Timestamp.fromDate( this.getFormControl('dateEnd').value ),
         currency: this.getFormControl('currency').value,
+        daily,
         total: this.getFormControl('total').value,
       };
-      const expenses: IExpense[] = toIndexArray(this.expensesArray.value);
+      const expenses: IExpensePayload[] = prepareExpenses(this.expensesArray.value);
         
       this.store.select(UserSelectors.selectUserId).pipe(
         filter((userId: string | null): userId is string => !!userId),

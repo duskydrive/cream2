@@ -8,6 +8,12 @@ export const selectCurrentBudget = createSelector(
   (state: IBudgetState) => state.budget,
 );
 
+export const selectBudgetExpenses = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.expenses,
+);
+
+
 export const selectBudgetLoading = createSelector(
   selectBudgetState,
   (state: IBudgetState) => state.loading,
