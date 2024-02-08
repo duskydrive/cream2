@@ -4,61 +4,63 @@
 	<mat-form-field appearance="outline" color="accent">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
 		<mat-select (selectionChange)="changeBudget($event.value)">
-			<mat-option *ngFor="let budget of budgets" [value]="budget.id">{{ budget.title }}</mat-option>
+			<mat-option *ngFor="let budget of budgets$ | async" [value]="budget.id">{{ budget.title }}</mat-option>
 		</mat-select>
 	</mat-form-field>
 </div>
 
 <div class="p-10 wrapper">
-	<div *ngIf="currentBudget; else noBudget">
+	<div *ngIf="currentBudget$ | async as currentBudget; else noBudget">
 		<div class="mb-8 flex justify-between items-center">
 			<h3 class="!mb-0 !font-medium">{{ currentBudget.title }}</h3>
 			
 			<div class="flex items-center">
-				<div class="font-semibold mr-3">{{ formatDates(currentBudget.dateStart, currentBudget.dateEnd) }}</div>
+				<div class="font-semibold mr-3">{{ displayDaysDiff(currentBudget.dateStart, currentBudget.dateEnd) }}</div>
 				<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">more_horiz</mat-icon>
 			</div>
 		</div>
-	
+<form [formGroup]="expensesFormGroup">
 		<div class="mat-elevation-z8">
 			<mat-table 
 			#table
-			[dataSource]="dataSource"
+			[dataSource]="expensesArray.controls"
 			cdkDropList
 			(cdkDropListDropped)="drop($event)"
 			cdkDropListData="dataSource"
+			formArrayName="expensesArray"
 			[cdkDropListDisabled]="dragDisabled">
 		
 				<ng-container matColumnDef="items">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> Items </mat-header-cell>
-					<mat-cell *matCellDef="let element" class="!py-2 !px-9">
+					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-9">
 						<mat-form-field class="plain-input" appearance="outline">
-							<input matInput class="w-100" [value]="element.title" (blur)="onBlur()">
+							<input matInput class="w-100" formControlName="title" (blur)="onBlurExpenseTitle(i)">
 						</mat-form-field>
 					</mat-cell>
 				</ng-container>
 		
 				<ng-container matColumnDef="amount">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Amount </mat-header-cell>
-					<mat-cell *matCellDef="let element" class="!py-2 !px-6">
+					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6">
 						<mat-form-field class="plain-input" appearance="outline">
-							<input matInput class="w-100" [value]="element.amount">
+							<input matInput class="w-100" formControlName="amount" (blur)="onBlurExpenseAmount(i)">
 						</mat-form-field>
+						<input type="hidden" #oldAmountInput [value]="element.amount">
 					</mat-cell>
 				</ng-container>
 		
 				<ng-container matColumnDef="balance">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Balance </mat-header-cell>
-					<mat-cell *matCellDef="let element" class="!py-2 !px-6">
-						<mat-form-field class="plain-input" appearance="outline">
-							<input matInput class="w-100" [value]="element.balance">
+					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6">
+						<mat-form-field class="plain-input"  appearance="outline">
+							<input matInput formControlName="balance" class="w-100">
 						</mat-form-field>
 					</mat-cell>
 				</ng-container>
 		
 				<ng-container matColumnDef="action">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase">Action</mat-header-cell>
-					<mat-cell *matCellDef="let element" class="!py-2 !px-6 justify-center">
+					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6 justify-center">
 						<mat-icon class="cursor-pointer" (mousedown)="dragDisabled = false;">drag_indicator</mat-icon>
 						<mat-icon class="cursor-pointer">delete</mat-icon>
 					</mat-cell>
@@ -90,6 +92,7 @@
 				<div class="px-6"></div>
 			</div>
 		</div>
+	</form>
 	</div>
 
 	<ng-template #noBudget>No budget selected. Select or create new budget</ng-template>

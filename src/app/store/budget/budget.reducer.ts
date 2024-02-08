@@ -51,10 +51,13 @@ export const budgetReducer = createReducer(
     ...state,
     loading: true,
   })),
-  on(BudgetActions.updateBudgetSuccess, (state, { budget }) => ({
+  on(BudgetActions.updateBudgetSuccess, (state, { budgetData }) => ({
     ...state,
     loading: false,
-    budget,
+    budget: {
+      ...state.budget,
+      ...(budgetData as IBudget),
+    },
   })),
   on(BudgetActions.updateBudgetFailure, (state, { error }) => ({
     ...state,
@@ -77,7 +80,6 @@ export const budgetReducer = createReducer(
   })),
   on(BudgetActions.changeExpensesOrder, state => ({
     ...state,
-    // loading: true,
   })),
   on(BudgetActions.changeExpensesOrderSuccess, state => ({
     ...state,
@@ -99,6 +101,75 @@ export const budgetReducer = createReducer(
   })),
   on(BudgetActions.reorderItemsActionFailure, (state, { error }) => ({
     ...state,
+    error,
+  })),
+  on(BudgetActions.updateExpenseTitle, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.updateExpenseTitleSuccess, (state, { expenseId, newTitle }) => {
+    // Guard clause if budget or expenses are null
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
+    
+    if (index !== -1) {
+      // Create a deep copy of the expenses array and update the title
+      const updatedExpenses = state.budget.expenses.map((expense, idx) => 
+        idx === index ? { ...expense, title: newTitle } : expense);
+  
+      // Update the budget part of the state with new expenses array
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          expenses: updatedExpenses,
+        },
+        loading: false,
+      };
+    } else {
+      // Return state unchanged if the expense is not found
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateExpenseTitleFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateExpenseAmount, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.updateExpenseAmountSuccess, (state, { expenseId, newAmount, newBalance }) => {
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
+    
+    if (index !== -1) {
+      // Create a deep copy of the expenses array and update the title
+      const updatedExpenses = state.budget.expenses.map((expense, idx) => 
+        idx === index ? { ...expense, amount: newAmount, balance: newBalance } : expense);
+
+        console.log(updatedExpenses)
+  
+      // Update the budget part of the state with new expenses array
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          expenses: updatedExpenses,
+        },
+        loading: false,
+      };
+    } else {
+      // Return state unchanged if the expense is not found
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateExpenseAmountFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
     error,
   })),
 );

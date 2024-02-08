@@ -29,7 +29,7 @@
 
 			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
 				<mat-label>{{ 'amount' | translate }}</mat-label>
-				<input matInput type="number" formControlName="total" (input)="countDaily()">
+				<input matInput type="number" formControlName="total">
 				<mat-error>
 					{{ formHelpersService.getError(getFormControl('total')).key | translate:formHelpersService.getError(getFormControl('total')) }}
 				</mat-error>
@@ -97,11 +97,11 @@
 				</div>
 				<div class="flex items-center">
 					<span class="!mr-1 mat-body-1">{{ 'planned_expenses' | translate }}:</span>
-					<span class="mat-body-1"><b>{{ getTotalExpensesAsObservable() | async }}</b></span>
+					<span class="mat-body-1"><b>{{ plannedExpenses$ | async }}</b></span>
 				</div>
 				<div class="flex items-center">
 					<span class="!mr-1 mat-body-1">{{ 'daily' | translate }}:</span>
-					<span class="mat-body-1" [ngClass]="{'text-red-500': (getDailyAsObservable() | async)! < 1}"><b>{{ getDailyAsObservable() | async }}</b></span>
+					<span class="mat-body-1" [ngClass]="{'text-red-500': daily$.getValue() < 1}"><b>{{ daily$ | async }}</b></span>
 				</div>
 			</div>
 			

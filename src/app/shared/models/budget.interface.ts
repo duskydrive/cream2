@@ -28,6 +28,15 @@ export interface IExpense {
   orderIndex: number,
 }
 
+export interface IExpenseExtended {
+  id?: string,
+  title: string,
+  originalTitle: string,
+  amount: number,
+  balance: number,
+  orderIndex: number,
+}
+
 export interface IExpensePayload {
   title: string,
   amount: number,

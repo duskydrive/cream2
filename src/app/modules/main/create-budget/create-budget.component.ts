@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BehaviorSubject, filter, Observable, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, take, takeUntil } from 'rxjs';
 import { Timestamp } from 'firebase/firestore';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import * as moment from 'moment';
@@ -12,7 +12,7 @@ import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { CURRENCY_LIST } from './create-budget.constants';
-import { IBudgetPayload, IExpensePayload } from 'src/app/shared/models/budget.interface';
+import { IBudgetPayload } from 'src/app/shared/models/budget.interface';
 import { prepareExpenses } from 'src/app/app.helpers';
 
 @Component({
@@ -24,9 +24,11 @@ import { prepareExpenses } from 'src/app/app.helpers';
 export class CreateBudgetComponent extends Unsub implements OnInit {
   public budgetForm: FormGroup;
   public expensesForm: FormGroup;
-  public totalExpensesSubject$ = new BehaviorSubject<number>(0);
+  public totalDays$ = new BehaviorSubject<number>(1);
+  // TODO change to categorised expenses
+  public plannedExpenses$ = new BehaviorSubject<number>(0);
   public daily$ = new BehaviorSubject<number>(0);
-  public totalDays: number = 1;  
+  // public uncategorisedExpenses$ = new BehaviorSubject<number>(0);
   protected readonly CURRENCY_LIST = CURRENCY_LIST;
   
   constructor(
@@ -56,10 +58,26 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
 
   public ngOnInit() {
     this.addExpenseItem(3);
-
-    this.countDaily();
+    this.calculateDailyBudget();
   }
 
+  private calculateDailyBudget() {
+    combineLatest([
+      this.totalDays$,
+      this.getFormControl('total').valueChanges,
+      this.plannedExpenses$,
+    ]).pipe(
+      map(([days, total, expenses]) => {
+        const uncategorisedExpenses = total - expenses;
+        // this.uncategorisedExpenses$.next(uncategorisedExpenses);
+        return Math.floor(uncategorisedExpenses / days);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(daily => {
+      this.daily$.next(daily);
+    });
+  }
+  
   public getFormControl(name: string): AbstractControl {
     return this.budgetForm.get(name) as AbstractControl;
   }
@@ -67,10 +85,6 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
   public getFormControlFromArray(index: number, name: string): AbstractControl {
     const group = this.expensesArray.at(index) as FormGroup;
     return group.get(name) as AbstractControl;
-  }
-
-  public getTotalExpensesAsObservable() {
-    return this.totalExpensesSubject$.asObservable();
   }
 
   public addExpenseItem(times: number) {
@@ -81,7 +95,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
     }
   }
 
-  public createExpenseItem(title?: string, amount?: number): FormGroup {
+  private createExpenseItem(title?: string, amount?: number): FormGroup {
     return this.formBuilder.group({
       title: [title || null, [Validators.required]],
       amount: [amount || null, [Validators.required, Validators.min(1)]],
@@ -98,28 +112,16 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
       const startDate = moment(startValue, 'M/D/YYYY');
       const endDate = moment(endValue, 'M/D/YYYY');
 
-      this.totalDays = endDate.diff(startDate, 'days') + 1;
-      this.countDaily();
+      this.totalDays$.next(endDate.diff(startDate, 'days') + 1);
     }
   }
 
   public onAmountChange() {
     const total = this.expensesArray.controls.reduce((acc: number, current: AbstractControl) => {
-      return acc + current.value.amount
+      return acc + current.value.amount;
     }, 0);
-    this.totalExpensesSubject$.next(total);
+    this.plannedExpenses$.next(total);
   }
-
-  public countDaily() {
-    this.getTotalExpensesAsObservable().subscribe((totalExpenses: number) => {
-      this.daily$.next(Math.floor((this.getFormControl('total').value - totalExpenses) / this.totalDays));
-    });
-  }
-
-  public getDailyAsObservable(): Observable<number> {
-    return this.daily$.asObservable();
-  }
-
 
   public drop(event: CdkDragDrop<FormGroup[]>) {
     const fromIndex = event.previousIndex;
@@ -135,33 +137,32 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
       return;
     }
 
-    this.getDailyAsObservable().pipe(
+    const currentDaily = this.daily$.getValue();
+  
+    if (currentDaily < 1) {
+      this.snackbarService.showError('daily_error');
+      return;
+    };
+      
+    this.store.select(UserSelectors.selectUserId).pipe(
+      filter((userId: string | null): userId is string => !!userId), // Ensure we have a non-null user ID
+      take(1),
       takeUntil(this.destroy$),
-    ).subscribe((daily: number) => {
-      if (daily < 1) {
-        this.snackbarService.showError('daily_error');
-        return;
-      };
+    ).subscribe((userId) => {
+      // const uncategorisedExpenses = this.uncategorisedExpenses$.value;
+      // const dailyExpenses =  this.createExpenseItem('Daily', uncategorisedExpenses).value;
+      const expenses = prepareExpenses([...this.expensesArray.value]);
       
       const budgetData: IBudgetPayload = {
         title: this.getFormControl('title').value,
         dateStart: Timestamp.fromDate( this.getFormControl('dateStart').value ),
         dateEnd: Timestamp.fromDate( this.getFormControl('dateEnd').value ),
         currency: this.getFormControl('currency').value,
-        daily,
+        daily: currentDaily,
         total: this.getFormControl('total').value,
       };
-      const expenses: IExpensePayload[] = prepareExpenses(this.expensesArray.value);
-        
-      this.store.select(UserSelectors.selectUserId).pipe(
-        filter((userId: string | null): userId is string => !!userId),
-        take(1),
-        takeUntil(this.destroy$),
-      ).subscribe({
-        next: (userId: string) => {
-          this.store.dispatch(BudgetActions.createBudget({ userId, budgetData, expenses }));
-        }
-      });
+
+      this.store.dispatch(BudgetActions.createBudget({ userId, budgetData, expenses }));
     });
   }
 }

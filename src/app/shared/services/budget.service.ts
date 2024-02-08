@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, combineLatest, concatMap, forkJoin, from, map, of, switchMap, tap } from 'rxjs';
-import { collection, collectionData, doc, docData, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch } from '@angular/fire/firestore';
+import { Observable, concatMap, forkJoin, from, map, of, switchMap} from 'rxjs';
+import { collection, collectionData, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch } from '@angular/fire/firestore';
 import { IBudget, IBudgetPayload, IExpense, IExpensePayload } from '../models/budget.interface';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
 
@@ -27,7 +27,7 @@ export class BudgetService {
         ...expense,
         id: expenseDocRef.id,
       };
-      console.log('expenseWithId', expenseWithId)
+      
       return from(setDoc(expenseDocRef, expenseWithId)).pipe(
         map(() => expenseWithId)
       );
@@ -45,96 +45,50 @@ export class BudgetService {
             id: budgetId,
         }))
     );
-}
+  }
 
-// public getBudget(userId: string, budgetId: string): Observable<any> {
-//   const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
+  public getBudget(userId: string, budgetId: string): Observable<any> {
+    const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`); 
+    return from(getDoc(budgetDocRef)).pipe(
+      switchMap(budgetSnap => {
+        if (!budgetSnap.exists()) {
+          return of(null);
+        }
 
-//   return docData(budgetDocRef).pipe(
-//     switchMap(budget => {
-//       if (!budget) return from([]);
-//       // Create a query for the expenses collection, ordered by 'orderIndex'
-//       const expensesQuery = query(
-//         collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`),
-//         orderBy('orderIndex')
-//       );
+        const expensesQuery = query(
+          collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`),
+          orderBy('orderIndex')
+        );
 
-//       // Fetch the data using the query
-//       return combineLatest([of(budget), collectionData(expensesQuery, { idField: 'id' })]);
-//     }),
-//     map(([budget, expenses]) => {
-//       if (!budget) return null;
-//       return { 
-//         ...budget, 
-//         id: budgetId,
-//         expenses,
-//       };
-//     })
-//   );
-// }
-// public getBudget(userId: string, budgetId: string): Observable<any> {
-//   const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
-//   alert('service -> enter getBudget');
-//   return docData(budgetDocRef).pipe(
-//     switchMap(budget => {
-//       alert('service -> 1 inside switchMap');
-//       if (!budget) return of(null);
+        return from(getDocs(expensesQuery)).pipe(
+          map(querySnapshot => {
+            const expenses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return { ...budgetSnap.data(), id: budgetId, expenses };
+          })
+        );
+      })
+    );
+  }
 
-//       // Create a query for the expenses collection, ordered by 'orderIndex'
-//       const expensesQuery = query(
-//         collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`),
-//         orderBy('orderIndex')
-//       );
+  public updateBudget(userId: string, budgetId: string, budgetData: Partial<IBudget>): Observable<any> {
+    const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
 
-//       // Fetch the data using the query (one-time fetch)
-//       return from(getDocs(expensesQuery)).pipe(
-//         map(querySnapshot => {
-//           const expenses = querySnapshot.docs
-//           .map(doc => ({ id: doc.id, ...doc.data() }));
-//           alert('service -> 2 inside map');
-//           return { ...budget, id: budgetId, expenses };
-//         })
-//       );
-//     })
-//   );
-// }
-public getBudget(userId: string, budgetId: string): Observable<any> {
-  const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
-  alert('service -> enter getBudget');
-  
-  // Only retrieve budget once, no Firestore listeners
-  return from(getDoc(budgetDocRef)).pipe(
-    switchMap(budgetSnap => {
-      if (!budgetSnap.exists()) {
-        return of(null);
-      }
-
-      // Create a query for the expenses collection, ordered by 'orderIndex'
-      const expensesQuery = query(
-        collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`),
-        orderBy('orderIndex')
-      );
-
-      // Fetch the data using the query (one-time fetch)
-      return from(getDocs(expensesQuery)).pipe(
-        map(querySnapshot => {
-          const expenses = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          alert('service -> 2 inside map');
-          return { ...budgetSnap.data(), id: budgetId, expenses };
-        })
-      );
-    })
-  );
-}
+    return from(updateDoc(budgetDocRef, budgetData)).pipe(
+      map(() => ({ budgetData })),
+    );
+  }
 
   public getBudgetsTitlesAndIds(userId: string): Observable<IBudgetTitleAndId[]> {
     const budgetsCol = collection(this.firestore, `users/${userId}/budgets`);
-    return collectionData(budgetsCol, { idField: 'id' }).pipe(
-      map(budgets => budgets.map(budget => ({ 
-        id: budget.id,
-        title: budget['title'],
-      }))),
-    )
+    
+    return from(getDocs(budgetsCol)).pipe(
+      map(querySnapshot => {
+        return querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          title: doc.data()['title']
+        }));
+      })
+    );
   }
 
   public updateExpensesOrder(userId: string, budgetId: string, expenses: IExpense[]): Observable<any> {
@@ -145,6 +99,37 @@ public getBudget(userId: string, budgetId: string): Observable<any> {
     });
     
     return from(batch.commit());
+  }
+
+  public updateExpenseTitle(userId: string, budgetId: string, expenseId: string, newTitle: string): Observable<any> {
+    const expenseRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/expenses/${expenseId}`);
+
+    return from(updateDoc(expenseRef, { title: newTitle })).pipe(
+      switchMap(() =>
+        from(getDoc(expenseRef)).pipe(
+          map((snapshot) => ({
+            expenseId: snapshot.id,
+            newTitle: snapshot.exists() ? (snapshot.data() as IExpense).title : '',
+          }))
+        )
+      )
+    );
+  }
+
+  public updateExpenseAmount(userId: string, budgetId: string, expenseId: string, newAmount: number, newBalance: number): Observable<any> {
+    const expenseRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/expenses/${expenseId}`);
+
+    return from(updateDoc(expenseRef, { amount: newAmount, balance: newBalance })).pipe(
+      switchMap(() =>
+        from(getDoc(expenseRef)).pipe(
+          map((snapshot) => ({
+            expenseId: snapshot.id,
+            newAmount: snapshot.data()!['amount'],
+            newBalance: snapshot.data()!['balance'],
+          }))
+        )
+      )
+    );
   }
   
 }

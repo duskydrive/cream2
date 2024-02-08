@@ -25,6 +25,9 @@
   width: 100% !important; 
   .mdc-text-field--outlined {
     padding: 0 !important;
+    &.mdc-text-field--disabled .mdc-text-field__input {
+      color: black !important;
+    }
   }
   .mdc-notched-outline__leading,
   .mdc-notched-outline__notch,

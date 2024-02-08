@@ -34,12 +34,12 @@ export const createBudgetFailure = createAction(
 
 export const updateBudget = createAction(
   '[Budget] Update Budget',
-  props<{ budget: IBudget }>()
+  props<{ budgetId: string, budgetData: Partial<IBudget> }>()
 );
 
 export const updateBudgetSuccess = createAction(
   '[Budget] Update Budget Success',
-  props<{ budget: IBudget }>()
+  props<{ budgetData: Partial<IBudget> }>()
 );
 
 export const updateBudgetFailure = createAction(
@@ -84,10 +84,39 @@ export const changeExpensesOrder = createAction(
 
 export const changeExpensesOrderSuccess = createAction(
   '[Budget] Change Expenses Order Success',
-  // props<{ expenses: IExpense[] }>()
 );
 
 export const changeExpensesOrderFailure = createAction(
   '[Budget] Change Expenses Order Failure',
+  props<{ error: any }>()
+);
+
+export const updateExpenseTitle = createAction(
+  '[Budget] Update Expense Title',
+  props<{ expenseId: string, newTitle: string }>()
+);
+
+export const updateExpenseTitleSuccess = createAction(
+  '[Budget] Update Expense Title Success',
+  props<{ expenseId: string, newTitle: string }>()
+);
+
+export const updateExpenseTitleFailure = createAction(
+  '[Budget] Update Expense Title Failure',
+  props<{ error: any }>()
+);
+
+export const updateExpenseAmount = createAction(
+  '[Budget] Update Expense Amount',
+  props<{ expenseId: string, newAmount: number, newBalance: number }>()
+);
+
+export const updateExpenseAmountSuccess = createAction(
+  '[Budget] Update Expense Amount Success',
+  props<{ expenseId: string, newAmount: number, newBalance: number }>()
+);
+
+export const updateExpenseAmountFailure = createAction(
+  '[Budget] Update Expense Amount Failure',
   props<{ error: any }>()
 );
