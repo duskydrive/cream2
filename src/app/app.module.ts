@@ -64,7 +64,7 @@ export function createTranslateLoader(http: HttpClient) {
     StoreDevtoolsModule.instrument({
       // maxAge: 25, // Retains last 25 states
       // autoPause: true, // Pauses recording actions and state changes when the extension window is not open
-      trace: true, // Enable tracing
+      trace: false, // Enable tracing
       features: {
         
       }

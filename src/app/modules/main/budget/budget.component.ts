@@ -70,7 +70,7 @@ export class BudgetComponent extends Unsub implements OnInit {
           originalTitle: expense.title,
           amount: expense.amount,
           originalAmount: expense.amount,
-          balance: [{value: expense.balance, disabled: true}],
+          balance: expense.balance,
           orderIndex: expense.orderIndex,
         }));
       });
@@ -146,9 +146,6 @@ export class BudgetComponent extends Unsub implements OnInit {
         const amountLeft = newUncategorisedSpend; // TODO later: add fact daily spends here (newUncatgorisedSpend - fact daily spends)
         const dailyWithUncategorisedSpend = amountLeft / daysDiff;
         if (dailyWithUncategorisedSpend > 1) {
-          // TODO this should be in effects. probably put all thus shit in helper
-          // const dailyWithoutUncategorisedSpend = newUncatgorisedSpend / daysDiff;
-          // return dailyWithoutUncategorisedSpend;
           return true;
         }
         return false;

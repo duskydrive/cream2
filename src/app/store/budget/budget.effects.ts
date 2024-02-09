@@ -51,8 +51,8 @@ export class BudgetEffects {
 
   updateBudget$ = createEffect(() => 
     this.actions$.pipe(
-      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       ofType(BudgetActions.updateBudget),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       withLatestFrom(
         this.store.select(UserSelectors.selectUserId),
       ),
@@ -135,7 +135,6 @@ export class BudgetEffects {
           ...expense,
           orderIndex: index
         }));
-        console.log('reindexedExpenses', reindexedExpenses)
 
         if (reindexedExpenses) { 
           return BudgetActions.reorderItemsActionSuccess({ expenses: reindexedExpenses });
@@ -224,22 +223,22 @@ export class BudgetEffects {
     )
   );
 
-  // updateExpenseAmountSuccessAction$ = createEffect(() => 
-  //   this.actions$.pipe(
-  //     ofType(BudgetActions.updateExpenseAmountSuccess),
-  //     tap(() => this.store.dispatch(SpinnerActions.startRequest())),
-  //     withLatestFrom(
-  //       this.store.select(BudgetSelectors.selectCurrentBudget)
-  //     ),
-  //     switchMap(([ expense, budget ]) => {
-  //       const { total, dateStart, dateEnd, expenses } = budget!;
-  //       const daysDiff = countDaysDiff(dateStart, dateEnd);
-  //       const newDaily = Math.floor((total - countCategorisedExpenses(expenses)) / daysDiff);
+  updateExpenseAmountSuccessAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.updateExpenseAmountSuccess),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      withLatestFrom(
+        this.store.select(BudgetSelectors.selectCurrentBudget)
+      ),
+      switchMap(([ expense, budget ]) => {
+        const { total, dateStart, dateEnd, expenses } = budget!;
+        const daysDiff = countDaysDiff(dateStart, dateEnd);
+        const newDaily = Math.floor((total - countCategorisedExpenses(expenses)) / daysDiff);
 
-  //       return of(BudgetActions.updateBudget({ budgetId: budget!.id, budgetData: { daily: newDaily }}));
-  //     }
-  //     ),
-  //     tap(() => this.store.dispatch(SpinnerActions.endRequest())),
-  //   )
-  // );
+        return of(BudgetActions.updateBudget({ budgetId: budget!.id, budgetData: { daily: newDaily }}));
+      }
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
 }
