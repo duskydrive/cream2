@@ -6,6 +6,7 @@ import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
 export interface IBudgetState {
   budget: IBudget | null,
   budgetTitlesAndIds: IBudgetTitleAndId[] | null,
+  copiedBudget: IBudget | null;
   loading: boolean,
   error: any,
 }
@@ -13,6 +14,7 @@ export interface IBudgetState {
 export const initialState: IBudgetState = {
   budget: null,
   budgetTitlesAndIds: [],
+  copiedBudget: null,
   loading: false,
   error: null,
 }
@@ -172,4 +174,82 @@ export const budgetReducer = createReducer(
     loading: false,
     error,
   })),
+  on(BudgetActions.deleteExpense, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.deleteExpenseSuccess, (state, { expenseId }) => {
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const updatedExpenses = state.budget.expenses.filter((expense) => expense.id !== expenseId);
+    
+    return {
+      ...state,
+      budget: {
+        ...state.budget,
+        expenses: updatedExpenses,
+      },
+      loading: false,
+    };
+  }),  
+  on(BudgetActions.deleteExpenseFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  // on(BudgetActions.addExpense, state => ({
+  //   ...state,
+  //   loading: true,
+  // })),
+  on(BudgetActions.addExpenseSuccess, (state, { expense }) => {
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const updatedExpenses = [...state.budget.expenses, expense];
+    
+    return {
+      ...state,
+      budget: {
+        ...state.budget,
+        expenses: updatedExpenses,
+      },
+      loading: false,
+    };
+  }),  
+  on(BudgetActions.addExpenseFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateBudgetTitleInList, (state, { budgetId, newTitle }) => {
+    if (!state.budgetTitlesAndIds) {
+      return { ...state };
+    }
+  
+    const budgetTitlesAndIdsCopy = [...state.budgetTitlesAndIds];
+    const budgetToUpdateIndex = budgetTitlesAndIdsCopy.findIndex(budget => budget.id === budgetId);
+  
+    if (budgetToUpdateIndex !== -1) {
+      const updatedBudgets = budgetTitlesAndIdsCopy.map((item, index) =>
+        index === budgetToUpdateIndex ? { ...item, title: newTitle } : item
+      );
+  
+      return {
+        ...state,
+        budgetTitlesAndIds: updatedBudgets
+      };
+    } else {
+      return { ...state };
+    }
+  }),
+  on(BudgetActions.copyBudget, (state, { budget }) => ({
+    ...state,
+    copiedBudget: {
+      ...budget,
+    },
+  })),
+  on(BudgetActions.resetCopiedBudget, (state) => ({
+    ...state,
+    copiedBudget: null,
+  })),
 );
+

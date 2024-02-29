@@ -8,6 +8,16 @@ export const selectCurrentBudget = createSelector(
   (state: IBudgetState) => state.budget,
 );
 
+export const selectCurrentBudgetId = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.budget?.id,
+);
+
+export const copiedBudget = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.copiedBudget,
+);
+
 export const selectBudgetLoading = createSelector(
   selectBudgetState,
   (state: IBudgetState) => state.loading,

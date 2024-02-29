@@ -3,8 +3,8 @@
 
 	<mat-form-field appearance="outline" color="accent">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
-		<mat-select (selectionChange)="changeBudget($event.value)">
-			<mat-option *ngFor="let budget of budgets$ | async" [value]="budget.id">{{ budget.title }}</mat-option>
+		<mat-select (selectionChange)="changeBudget($event.value)" [value]="currentBudgetId$ | async">
+			<mat-option *ngFor="let budget of budgets$ | async; trackBy:identify" [value]="budget.id">{{ budget.title }}</mat-option>
 		</mat-select>
 	</mat-form-field>
 </div>
@@ -19,16 +19,16 @@
 				<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">more_horiz</mat-icon>
 			</div>
 		</div>
-<form [formGroup]="expensesFormGroup">
-		<div class="mat-elevation-z8">
-			<mat-table 
-			#table
-			[dataSource]="expensesArray.controls"
-			cdkDropList
-			(cdkDropListDropped)="drop($event)"
-			cdkDropListData="dataSource"
-			formArrayName="expensesArray"
-			[cdkDropListDisabled]="dragDisabled">
+		<form [formGroup]="expensesFormGroup">
+			<div class="mat-elevation-z8">
+				<mat-table 
+				#table
+				[dataSource]="expensesArray.controls"
+				cdkDropList
+				(cdkDropListDropped)="drop($event)"
+				cdkDropListData="dataSource"
+				formArrayName="expensesArray"
+				[cdkDropListDisabled]="dragDisabled">
 		
 				<ng-container matColumnDef="items">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> Items </mat-header-cell>
@@ -62,7 +62,7 @@
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase">Action</mat-header-cell>
 					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6 justify-center">
 						<mat-icon class="cursor-pointer" (mousedown)="dragDisabled = false;">drag_indicator</mat-icon>
-						<mat-icon class="cursor-pointer">delete</mat-icon>
+						<mat-icon class="cursor-pointer" (click)="openConfirmDeleteDialog(element.get('id').value, element.get('title').value)">delete</mat-icon>
 					</mat-cell>
 				</ng-container>
 		
@@ -74,7 +74,7 @@
 	
 			<div class="flex justify-end custom-row">
 				<div class="add-row py-2 px-6 flex justify-center items-center">
-					<mat-icon class="cursor-pointer ml-6">add</mat-icon>
+					<mat-icon class="cursor-pointer ml-6" (click)="addNewExpense()">add</mat-icon>
 				</div>
 			</div>
 	
@@ -100,11 +100,11 @@
 </div>
 
 <mat-menu #menu="matMenu" class="custom-mat-menu">
-	<button mat-menu-item>
+	<button mat-menu-item (click)="openEditDialog()">
 		<mat-icon>edit</mat-icon>
     <span>Edit</span>
   </button>
-	<button mat-menu-item>
+	<button mat-menu-item (click)="copyBudget()">
 		<mat-icon>file_copy</mat-icon>
 		<span>Copy</span>
 	</button>

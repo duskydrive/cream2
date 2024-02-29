@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../store/budget/budget.actions';
@@ -8,15 +8,19 @@ import * as UserSelectors from 'src/app/store/user/user.selectors';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
-import { Observable, debounceTime, distinctUntilChanged, filter, finalize, first, map, of, switchMap, take, takeUntil } from 'rxjs';
-import { IBudget, IExpense, IExpenseExtended } from 'src/app/shared/models/budget.interface';
+import { Observable, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap} from 'rxjs';
+import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
 import { isEqual } from 'lodash';
-import { countCategorisedExpenses, countDaysDiff } from 'src/app/app.helpers';
+import { MatDialog } from '@angular/material/dialog';
+import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
+import { EditDialogComponent } from './edit-dialog/edit-dialog.component';
+import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-budget',
@@ -26,6 +30,7 @@ import { countCategorisedExpenses, countDaysDiff } from 'src/app/app.helpers';
 export class BudgetComponent extends Unsub implements OnInit {
   public displayedColumns: string[] = ['items', 'amount', 'balance', 'action'];
   public currentBudget$: Observable<IBudget | null> = this.store.select(BudgetSelectors.selectCurrentBudget);
+  public currentBudgetId$: Observable<string | undefined> = this.store.select(BudgetSelectors.selectCurrentBudgetId);
   public budgets$: Observable<IBudgetTitleAndId[] | null> = this.store.select(BudgetSelectors.selectBudgetsTitlesAndIds);
   private userId$: Observable<string | null> = this.store.select(UserSelectors.selectUserId);
   public dataSource: any[] = [];
@@ -36,9 +41,12 @@ export class BudgetComponent extends Unsub implements OnInit {
 
   constructor(
     public formHelpersService: FormHelpersService,
+    public budgetCalculatorService: BudgetCalculatorService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
+    private router: Router,
     private snackbarService: SnackbarService,
+    private matDialog: MatDialog,
   ) {
     super();
   }
@@ -75,22 +83,34 @@ export class BudgetComponent extends Unsub implements OnInit {
         }));
       });
 
-      // TODO test when currentBudget is not null from the get go and maybe move this to afterViewInit
       if (this.table) {
         this.table.renderRows(); 
       }
-
-      console.log('this.expensesArray.value', this.expensesArray.value)
     });
   }
     
   public changeBudget(budgetId: string) {
     this.userId$.pipe(
       filter((userId: string | null): userId is string => !!userId),
+      take(1),
+      tap((userId: string) => {
+        this.store.dispatch(BudgetActions.loadBudget({ userId, budgetId }));
+      }),
+    ).subscribe();
+  }
+
+  public openConfirmDeleteDialog(expenseId: string, title: string) {
+    this.matDialog.open(DeleteDialogComponent, {
+      data: { title }
+    })
+    .afterClosed()
+    .pipe(
+      filter(data => !!data),
       takeUntil(this.destroy$),
-    ).subscribe((userId: string) => {
-      this.store.dispatch(BudgetActions.loadBudget({ userId, budgetId }));
-    });
+      tap(() => {
+        this.store.dispatch(BudgetActions.deleteExpense({ expenseId }));
+      }),
+    ).subscribe();
   }
 
   displayDaysDiff(dateStart: Timestamp, dateEnd: Timestamp): string {
@@ -98,7 +118,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     const endDate = moment(dateEnd.toDate()).endOf('day');
     const formattedStartDate = startDate.format('MM/DD/YYYY');
     const formattedEndDate = endDate.format('MM/DD/YYYY');
-    const daysDiff = countDaysDiff(dateStart, dateEnd);
+    const daysDiff = this.budgetCalculatorService.countDaysDiff(dateStart, dateEnd);
   
     return `${formattedStartDate} - ${formattedEndDate} (${daysDiff} days)`;
   }
@@ -106,6 +126,7 @@ export class BudgetComponent extends Unsub implements OnInit {
   public onBlurExpenseTitle(index: number) {
     const group = this.expensesArray.at(index);
     if (group.get('title')!.value === group.get('originalTitle')!.value) return;
+    alert(3)
     this.store.dispatch(BudgetActions.updateExpenseTitle({
       expenseId: group.get('id')!.value, 
       newTitle: group.get('title')!.value 
@@ -120,38 +141,50 @@ export class BudgetComponent extends Unsub implements OnInit {
     if (newAmount === oldAmount) {
       return;
     }
-  
-    this.isAmountValid(newAmount, oldAmount).subscribe((isValid: boolean) => {
-      if (isValid) {
-        this.store.dispatch(BudgetActions.updateExpenseAmount({
-          expenseId: group.get('id')!.value,
-          newAmount,
-          newBalance: newAmount - (oldAmount - group.get('balance')!.value),
-        }));
-      } else {
-        group.get('amount')!.setValue(oldAmount);
-        this.snackbarService.showError('daily is negative');
-      }
-    });
-  }
-  
-  isAmountValid(newAmount: number, oldAmount: number) {
-    return this.currentBudget$.pipe(
-      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
+
+    this.currentBudget$.pipe(
       filter((budget: IBudget | null): budget is IBudget => !!budget),
       map((budget: IBudget) => {
-        const plannedSpend = countCategorisedExpenses(budget.expenses);
-        const daysDiff = countDaysDiff(budget.dateStart, budget.dateEnd);
-        const newUncategorisedSpend = budget.total - plannedSpend + oldAmount - newAmount;
-        const amountLeft = newUncategorisedSpend; // TODO later: add fact daily spends here (newUncatgorisedSpend - fact daily spends)
-        const dailyWithUncategorisedSpend = amountLeft / daysDiff;
-        if (dailyWithUncategorisedSpend > 1) {
-          return true;
+        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount);
+        if (isValid) {
+          alert('save')
+          this.store.dispatch(BudgetActions.updateExpenseAmount({
+            expenseId: group.get('id')!.value,
+            newAmount,
+            newBalance: newAmount - (oldAmount - group.get('balance')!.value),
+          }));
+        } else {
+          group.get('amount')!.setValue(oldAmount);
+          this.snackbarService.showError('daily is negative');
         }
-        return false;
       }),
       take(1),
-    );
+    ).subscribe();
+  }
+
+  openEditDialog() {
+    return this.currentBudget$.pipe(
+      switchMap((budget: IBudget | null) => this.matDialog.open(EditDialogComponent, {
+        data: {
+          ...budget,
+        }
+      }).afterClosed()),
+      take(1),
+    ).subscribe();
+  }
+
+  public copyBudget() {
+    this.currentBudget$.pipe(
+      filter((budget: IBudget | null): budget is IBudget => !!budget),
+      take(1),
+    ).subscribe((budget: IBudget) => {
+      this.store.dispatch(BudgetActions.copyBudget({ budget }));
+      this.router.navigate(['/create']);
+    });
+  }
+
+  public addNewExpense(): void {
+    this.store.dispatch(BudgetActions.addExpense());
   }
 
   drop(event: CdkDragDrop<any>) {
@@ -169,6 +202,10 @@ export class BudgetComponent extends Unsub implements OnInit {
 
   dragEnded() {
     this.isDragging = false;
+  }
+
+  identify(index: number, item: IBudgetTitleAndId){
+    return item.id;
   }
   
   public onSubmit() {

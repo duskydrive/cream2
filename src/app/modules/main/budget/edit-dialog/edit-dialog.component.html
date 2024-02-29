@@ -1,0 +1,47 @@
+<div class="py-3">
+  <h1 mat-dialog-title class="!text-3xl !mb-5">{{ 'edit' | translate }}</h1>
+  <mat-dialog-content>
+    <form [formGroup]="editForm" class="pt-2">
+      <mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'title' | translate }}</mat-label>
+				<input matInput type="text" formControlName="title">
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('title')).key | translate:formHelpersService.getError(getFormControl('title')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'enter_date_range' | translate }}</mat-label>
+				<mat-date-range-input [rangePicker]="picker">
+					<input matStartDate formControlName="dateStart"#dateStart>
+					<input matEndDate formControlName="dateEnd" #dateEnd>
+				</mat-date-range-input>
+				<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+				<mat-date-range-picker #picker></mat-date-range-picker>
+			
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('dateEnd')).key | translate:formHelpersService.getError(getFormControl('dateEnd')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="mb-7 w-full" color="accent">
+				<mat-label>{{ 'amount' | translate }}</mat-label>
+				<input matInput type="number" formControlName="total">
+				<mat-error>
+					{{ formHelpersService.getError(getFormControl('total')).key | translate:formHelpersService.getError(getFormControl('total')) }}
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline" class="w-full" color="accent">
+				<mat-label>{{ 'currency' | translate }}</mat-label>
+				<mat-select formControlName="currency">
+					<mat-option *ngFor="let currency of CURRENCY_LIST" [value]="currency">{{ currency }}</mat-option>
+				</mat-select>
+			</mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions class="!w-100 !justify-between !px-6">
+  <button mat-stroked-button color="primary" mat-dialog-close>{{ 'cancel' | translate }}</button>
+  <button mat-raised-button cdkFocusInitial (click)="onSubmit()" color="accent">{{ 'ok' | translate }}</button>
+</mat-dialog-actions>
+</div>

@@ -1,19 +1,21 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BehaviorSubject, combineLatest, filter, map, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, filter, map, switchMap, take, takeUntil, tap, throwError } from 'rxjs';
 import { Timestamp } from 'firebase/firestore';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import * as moment from 'moment';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
+import * as moment from 'moment';
 import * as BudgetActions from '../../../store/budget/budget.actions';
+import * as BudgetSelectors from 'src/app/store/budget/budget.selectors';
 import * as UserSelectors from 'src/app/store/user/user.selectors';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { CURRENCY_LIST } from './create-budget.constants';
-import { IBudgetPayload } from 'src/app/shared/models/budget.interface';
 import { prepareExpenses } from 'src/app/app.helpers';
+import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
+import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 
 @Component({
   selector: 'app-create-budget',
@@ -21,18 +23,18 @@ import { prepareExpenses } from 'src/app/app.helpers';
   styleUrls: ['./create-budget.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CreateBudgetComponent extends Unsub implements OnInit {
+export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
   public budgetForm: FormGroup;
   public expensesForm: FormGroup;
+  public copiedBudget$: Observable<IBudget | null> = this.store.select(BudgetSelectors.copiedBudget);
   public totalDays$ = new BehaviorSubject<number>(1);
-  // TODO change to categorised expenses
-  public plannedExpenses$ = new BehaviorSubject<number>(0);
+  public categorisedExpenses$ = new BehaviorSubject<number>(0);
   public daily$ = new BehaviorSubject<number>(0);
-  // public uncategorisedExpenses$ = new BehaviorSubject<number>(0);
   protected readonly CURRENCY_LIST = CURRENCY_LIST;
   
   constructor(
     public formHelpersService: FormHelpersService,
+    public budgetCalculatorService: BudgetCalculatorService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
     private snackbarService: SnackbarService,
@@ -43,7 +45,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
       title: [null, [Validators.required]],
       dateStart: [new Date(), [Validators.required]],
       dateEnd: [new Date(), [Validators.required]],
-      total: [null, [Validators.required]],
+      total: [null, [Validators.required, Validators.min(1)]],
       currency: ['USD', [Validators.required]],
     });
 
@@ -57,19 +59,74 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
   }
 
   public ngOnInit() {
-    this.addExpenseItem(3);
     this.calculateDailyBudget();
+
+    this.copiedBudget$.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((budget: IBudget | null) => {
+      if (budget) {
+        this.fillFormWithCopiedBudget(budget);
+      } else {
+        this.addRows(3);
+      }
+    }); 
+  }
+
+  override ngOnDestroy(): void {
+    this.copiedBudget$.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((budget: IBudget | null) => {
+      if (budget) {
+        this.store.dispatch(BudgetActions.resetCopiedBudget());
+      } 
+    }); 
+    
+    super.ngOnDestroy();
+  }
+
+  fillFormWithCopiedBudget(budget: IBudget) {
+    this.budgetForm.patchValue({
+      title: budget.title,
+      total: budget.total,
+      currency: budget.currency,
+      dateStart: budget.dateStart.toDate(),
+      dateEnd: budget.dateEnd.toDate(),
+    });
+
+    budget.expenses.forEach((expense: IExpense) => {
+      const copiedItem = this.createExpenseItem(expense.title, expense.amount);
+      this.expensesArray.push( copiedItem );
+    });
+  
+    this.totalDays$.next( this.budgetCalculatorService.countDaysDiff(budget.dateStart, budget.dateEnd) );
+    this.categorisedExpenses$.next( this.budgetCalculatorService.countCategorisedExpenses(this.expensesArray.value) );
+
+    // TODO also when you create new budget - add new budget to budgetTitlesAndIds
+  }
+
+  public addExpenseItem(item: any) {
+    this.expensesArray.push( item );
+  }
+
+  public addRows(times: number) {
+    let count = 0;
+    while (count < times && count < 10) {
+      this.addExpenseItem( this.createExpenseItem() );
+      count++;
+    }
   }
 
   private calculateDailyBudget() {
     combineLatest([
       this.totalDays$,
       this.getFormControl('total').valueChanges,
-      this.plannedExpenses$,
+      this.categorisedExpenses$,
     ]).pipe(
       map(([days, total, expenses]) => {
+        console.log('days', days);
+        console.log('total', total);
+        console.log('expenses', expenses);
         const uncategorisedExpenses = total - expenses;
-        // this.uncategorisedExpenses$.next(uncategorisedExpenses);
         return Math.floor(uncategorisedExpenses / days);
       }),
       takeUntil(this.destroy$)
@@ -85,14 +142,6 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
   public getFormControlFromArray(index: number, name: string): AbstractControl {
     const group = this.expensesArray.at(index) as FormGroup;
     return group.get(name) as AbstractControl;
-  }
-
-  public addExpenseItem(times: number) {
-    let count = 0;
-    while (count < times && count < 10) {
-      this.expensesArray.push(this.createExpenseItem());
-      count++;
-    }
   }
 
   private createExpenseItem(title?: string, amount?: number): FormGroup {
@@ -120,7 +169,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
     const total = this.expensesArray.controls.reduce((acc: number, current: AbstractControl) => {
       return acc + current.value.amount;
     }, 0);
-    this.plannedExpenses$.next(total);
+    this.categorisedExpenses$.next(total);
   }
 
   public drop(event: CdkDragDrop<FormGroup[]>) {
@@ -136,27 +185,34 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
       this.expensesForm.markAllAsTouched();
       return;
     }
-
+    
     const currentDaily = this.daily$.getValue();
-  
-    if (currentDaily < 1) {
-      this.snackbarService.showError('daily_error');
-      return;
-    };
-      
-    this.store.select(UserSelectors.selectUserId).pipe(
-      filter((userId: string | null): userId is string => !!userId), // Ensure we have a non-null user ID
+
+    this.categorisedExpenses$.pipe(
+      switchMap((value: any) => {
+        if (value === 0) {
+          this.snackbarService.showError('add_expenses');
+          return throwError(() => new Error('No expenses'));
+        } else if (currentDaily < 1) {
+          this.snackbarService.showError('daily_error');
+          return throwError(() => new Error('Invalid daily amount'));
+        }
+        return this.store.select(UserSelectors.selectUserId);
+      }),
+      filter((userId: string | null): userId is string => !!userId),
       take(1),
-      takeUntil(this.destroy$),
+      catchError(error => {
+        // TODO Handle or log the error as needed
+        console.error(error);
+        return EMPTY; // Prevent further execution in case of error
+      })
     ).subscribe((userId) => {
-      // const uncategorisedExpenses = this.uncategorisedExpenses$.value;
-      // const dailyExpenses =  this.createExpenseItem('Daily', uncategorisedExpenses).value;
       const expenses = prepareExpenses([...this.expensesArray.value]);
       
-      const budgetData: IBudgetPayload = {
+      const budgetData: Omit<IBudget, 'id' | 'expenses'> = {
         title: this.getFormControl('title').value,
-        dateStart: Timestamp.fromDate( this.getFormControl('dateStart').value ),
-        dateEnd: Timestamp.fromDate( this.getFormControl('dateEnd').value ),
+        dateStart: Timestamp.fromDate(this.getFormControl('dateStart').value),
+        dateEnd: Timestamp.fromDate(this.getFormControl('dateEnd').value),
         currency: this.getFormControl('currency').value,
         daily: currentDaily,
         total: this.getFormControl('total').value,
@@ -164,5 +220,5 @@ export class CreateBudgetComponent extends Unsub implements OnInit {
 
       this.store.dispatch(BudgetActions.createBudget({ userId, budgetData, expenses }));
     });
-  }
+}
 }

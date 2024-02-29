@@ -1,6 +1,6 @@
 import { createAction, props } from "@ngrx/store";
 import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
-import { IBudget, IBudgetPayload, IExpense, IExpensePayload } from "src/app/shared/models/budget.interface";
+import { IBudget, IExpense } from "src/app/shared/models/budget.interface";
 
 export const loadBudget = createAction(
   '[Budget] Load Budget',
@@ -19,7 +19,7 @@ export const loadBudgetFailure = createAction(
 
 export const createBudget = createAction(
   '[Budget] Create Budget',
-  props<{ userId: string, budgetData: IBudgetPayload, expenses: IExpensePayload[] }>()
+  props<{ userId: string, budgetData: Omit<IBudget, 'id' | 'expenses'>, expenses: Omit<IExpense, 'id'>[] }>()
 );
 
 export const createBudgetSuccess = createAction(
@@ -119,4 +119,47 @@ export const updateExpenseAmountSuccess = createAction(
 export const updateExpenseAmountFailure = createAction(
   '[Budget] Update Expense Amount Failure',
   props<{ error: any }>()
+);
+
+export const deleteExpense = createAction(
+  '[Budget] Delete Expense',
+  props<{ expenseId: string }>()
+);
+
+export const deleteExpenseSuccess = createAction(
+  '[Budget] Delete Expense Success',
+  props<{ expenseId: string }>()
+);
+
+export const deleteExpenseFailure = createAction(
+  '[Budget] Delete Expense Failure',
+  props<{ error: any }>()
+);
+
+export const addExpense = createAction(
+  '[Budget] Add Expense',
+);
+
+export const addExpenseSuccess = createAction(
+  '[Budget] Add Expense Success',
+  props<{ expense: IExpense }>()
+);
+
+export const addExpenseFailure = createAction(
+  '[Budget] Add Expense Failure',
+  props<{ error: any }>()
+);
+
+export const updateBudgetTitleInList = createAction(
+  '[Budget] Update Budget Title In List',
+  props<{ budgetId: string, newTitle: string }>()
+);
+
+export const copyBudget = createAction(
+  '[Budget] Copy Budget',
+  props<{ budget: IBudget }>()
+);
+
+export const resetCopiedBudget = createAction(
+  '[Budget] Reset Copied Budget',
 );

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, concatMap, forkJoin, from, map, of, switchMap} from 'rxjs';
-import { collection, collectionData, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch } from '@angular/fire/firestore';
-import { IBudget, IBudgetPayload, IExpense, IExpensePayload } from '../models/budget.interface';
+import { collection, deleteDoc, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch } from '@angular/fire/firestore';
+import { IBudget, IExpense } from '../models/budget.interface';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
 
 @Injectable({
@@ -10,7 +10,7 @@ import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
 export class BudgetService {
   private firestore: Firestore = inject(Firestore);
   
-  public createBudget(userId: string, budget: IBudgetPayload, expenses: IExpensePayload[]): Observable<IBudget> {
+  public createBudget(userId: string, budget: Omit<IBudget, 'id' | 'expenses'>, expenses: Omit<IExpense, 'id'>[]): Observable<IBudget> {
     const budgetDocRef = doc(collection(this.firestore, `users/${userId}/budgets`));
     const addBudget$ = from(setDoc(budgetDocRef, budget));
 		
@@ -20,7 +20,7 @@ export class BudgetService {
   }
 
 
-  private addExpensesToBudget(budgetDocRef: DocumentReference, expenses: IExpensePayload[]): Observable<IExpense[]> {
+  private addExpensesToBudget(budgetDocRef: DocumentReference, expenses: Omit<IExpense, 'id'>[]): Observable<IExpense[]> {
     const expenseObservables = expenses.map(expense => {
       const expenseDocRef = doc(collection(this.firestore, `${budgetDocRef.path}/expenses`));
       const expenseWithId = {
@@ -36,7 +36,7 @@ export class BudgetService {
     return forkJoin(expenseObservables);
   }
 
-  private finalizeBudgetCreation(addBudget$: Observable<void>, expensesChain$: Observable<IExpense[]>, budget: IBudgetPayload, budgetId: string): Observable<IBudget> {
+  private finalizeBudgetCreation(addBudget$: Observable<void>, expensesChain$: Observable<IExpense[]>, budget: Omit<IBudget, 'id' | 'expenses'>, budgetId: string): Observable<IBudget> {
     return addBudget$.pipe(
         concatMap(() => expensesChain$),
         map(expensesWithId => ({
@@ -131,5 +131,43 @@ export class BudgetService {
       )
     );
   }
-  
+
+  public deleteExpense(userId: string, budgetId: string, expenseId: string): Observable<any> {
+    const expenseRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/expenses/${expenseId}`);
+
+    return from(deleteDoc(expenseRef));
+  }
+
+  public addExpense(userId: string, budgetId: string): Observable<IExpense> {
+    // Reference to the expenses collection for a specific budget
+    const expensesCollectionRef = collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`);
+
+    // Create a new document reference in the expenses collection
+    const expenseDocRef = doc(expensesCollectionRef);
+
+    // Determine the orderIndex by fetching current expenses
+    const expensesQuery = query(expensesCollectionRef);
+    const getOrderIndex$ = from(getDocs(expensesQuery)).pipe(
+      map(querySnapshot => querySnapshot.size + 1) // Assuming orderIndex starts at 1 and increments
+    );
+
+    return getOrderIndex$.pipe(
+      switchMap(orderIndex => {
+        // New expense object with Firebase auto-generated ID, and initial values
+        const newExpense: Omit<IExpense, 'id'> & { id: string } = {
+          id: expenseDocRef.id,
+          title: 'New',
+          amount: 0,
+          balance: 0,
+          orderIndex: orderIndex,
+        };
+
+        // Save the new expense to Firestore
+        return from(setDoc(expenseDocRef, newExpense)).pipe(
+          // Return the newly created expense
+          map(() => newExpense)
+        );
+      })
+    );
+  }
 }

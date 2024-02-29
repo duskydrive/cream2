@@ -29,6 +29,7 @@ import { StoreModule } from '@ngrx/store';
 import { reducers } from './store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { AppEffectsModule } from './app.effects';
+import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 
 export function createTranslateLoader(http: HttpClient) {
   return new TranslateHttpLoader(http, '../assets/i18n/', '.json');
@@ -74,7 +75,7 @@ export function createTranslateLoader(http: HttpClient) {
   providers: [
     { 
       provide: FIRESTORE_SETTINGS, 
-      useValue: { ignoreUndefinedProperties: true } 
+      useValue: { ignoreUndefinedProperties: true },
     },
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -82,9 +83,11 @@ export function createTranslateLoader(http: HttpClient) {
     },
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: {
-        subscriptSizing: 'dynamic'
-      }
+      useValue: { subscriptSizing: 'dynamic' },
+    },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: { width: '500px' },
     },
     {
       provide: HTTP_INTERCEPTORS,
