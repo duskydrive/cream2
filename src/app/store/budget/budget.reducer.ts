@@ -1,10 +1,11 @@
 import { createReducer, on } from "@ngrx/store";
-import { IBudget, IExpense } from "src/app/shared/models/budget.interface";
+import { IBudget, ISpend } from "src/app/shared/models/budget.interface";
 import * as BudgetActions from "./budget.actions";
 import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
 
 export interface IBudgetState {
   budget: IBudget | null,
+  spend: ISpend[],
   budgetTitlesAndIds: IBudgetTitleAndId[] | null,
   copiedBudget: IBudget | null;
   loading: boolean,
@@ -13,6 +14,7 @@ export interface IBudgetState {
 
 export const initialState: IBudgetState = {
   budget: null,
+  spend: [],
   budgetTitlesAndIds: [],
   copiedBudget: null,
   loading: false,
@@ -142,19 +144,17 @@ export const budgetReducer = createReducer(
   on(BudgetActions.updateExpenseAmount, state => ({
     ...state,
     loading: true,
-  })),
-  on(BudgetActions.updateExpenseAmountSuccess, (state, { expenseId, newAmount, newBalance }) => {
+  })), 
+  on(BudgetActions.updateExpenseAmountSuccess, (state, { updatedExpense }) => {
     if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
   
-    const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
-    
+    const index = state.budget.expenses.findIndex((e) => e.id === updatedExpense.expenseId);
+
     if (index !== -1) {
       // Create a deep copy of the expenses array and update the title
       const updatedExpenses = state.budget.expenses.map((expense, idx) => 
-        idx === index ? { ...expense, amount: newAmount, balance: newBalance } : expense);
-
-        console.log(updatedExpenses)
-  
+      idx === index ? { ...expense, amount: updatedExpense.newAmount, balance: updatedExpense.newBalance } : expense);
+        
       // Update the budget part of the state with new expenses array
       return {
         ...state,
@@ -164,12 +164,107 @@ export const budgetReducer = createReducer(
         },
         loading: false,
       };
+    
     } else {
       // Return state unchanged if the expense is not found
       return { ...state, loading: false };
     }
   }),  
   on(BudgetActions.updateExpenseAmountFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  // on(BudgetActions.updateExpenseBalance, state => ({
+  //   ...state,
+  //   loading: true,
+  // })), 
+  on(BudgetActions.updateExpenseBalanceSuccess, (state, { expenseId, newBalance }) => {
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
+
+    if (index !== -1) {
+      // Create a deep copy of the expenses array and update the title
+      const updatedExpenses = state.budget.expenses.map((expense, idx) => 
+      idx === index ? { ...expense, balance: newBalance } : expense);
+        
+      // Update the budget part of the state with new expenses array
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          expenses: updatedExpenses,
+        },
+        loading: false,
+      };
+    
+    } else {
+      // Return state unchanged if the expense is not found
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateExpenseBalanceFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+   on(BudgetActions.updateMultipleExpenseBalances, state => ({
+    ...state,
+    loading: true,
+  })), 
+  on(BudgetActions.updateMultipleExpenseBalancesSuccess, (state, { updates }) => {
+    if (!state.budget || !state.budget.expenses) {
+      return { ...state, loading: false };
+    }
+  
+    // Map over the existing expenses to update their balances based on the action's updates array
+    const updatedExpenses = state.budget.expenses.map(expense => {
+      const update = updates.find(u => u.expenseId === expense.id);
+      return update ? { ...expense, balance: update.newBalance } : expense;
+    });
+  
+    // Update the budget part of the state with the new expenses array
+    return {
+      ...state,
+      budget: {
+        ...state.budget,
+        expenses: updatedExpenses,
+      },
+      loading: false,
+    };
+  }),
+   on(BudgetActions.updateMultipleExpenseBalancesFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateDailyCategorySuccess, (state, { updatedExpense }) => {
+    if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
+  
+    const index = state.budget.expenses.findIndex((e) => e.id === updatedExpense.expenseId);
+
+    if (index !== -1) {
+      // Create a deep copy of the expenses array and update the title
+      const updatedExpenses = state.budget.expenses.map((expense, idx) => 
+      idx === index ? { ...expense, amount: updatedExpense.newAmount, balance: updatedExpense.newBalance } : expense);
+        
+      // Update the budget part of the state with new expenses array
+      return {
+        ...state,
+        budget: {
+          ...state.budget,
+          expenses: updatedExpenses,
+        },
+        loading: false,
+      };
+    
+    } else {
+      // Return state unchanged if the expense is not found
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateDailyCategoryFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error,
@@ -197,10 +292,6 @@ export const budgetReducer = createReducer(
     loading: false,
     error,
   })),
-  // on(BudgetActions.addExpense, state => ({
-  //   ...state,
-  //   loading: true,
-  // })),
   on(BudgetActions.addExpenseSuccess, (state, { expense }) => {
     if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
   
@@ -250,6 +341,137 @@ export const budgetReducer = createReducer(
   on(BudgetActions.resetCopiedBudget, (state) => ({
     ...state,
     copiedBudget: null,
+  })),
+  on(BudgetActions.loadSpendByDate, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.loadSpendByDateSuccess, (state, { spend }) => ({
+    ...state,
+    loading: false,
+    spend,
+  })),
+  on(BudgetActions.loadSpendByDateFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.deleteSpend, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.deleteSpendSuccess, (state, { spendId }) => {
+    if (!state.budget || !state.spend) return { ...state, loading: false };
+  
+    const updatedSpend = state.spend.filter((spend: ISpend) => spend.id !== spendId);
+    
+    return {
+      ...state,
+      spend: updatedSpend,
+      loading: false,
+    };
+  }),
+  on(BudgetActions.deleteSpendFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.addSpendSuccess, (state, { spend }) => {
+    if (!state.spend) return { ...state, loading: false };
+  
+    const updatedSpend = [...state.spend, spend];
+    
+    return {
+      ...state,
+      spend: updatedSpend,
+      loading: false,
+    };
+  }),  
+  on(BudgetActions.addSpendFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateSpendTitle, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.updateSpendTitleSuccess, (state, { spendId, newTitle }) => {
+    if (!state.spend) return { ...state, loading: false };
+  
+    const index = state.spend.findIndex((e) => e.id === spendId);
+    
+    if (index !== -1) {
+      const updatedSpend = state.spend.map((singleSpend, idx) => 
+        idx === index ? { ...singleSpend, title: newTitle } : singleSpend);
+
+      return {
+        ...state,
+        spend: updatedSpend,
+        loading: false,
+      };
+    } else {
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateSpendTitleFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateSpendCategory, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.updateSpendCategorySuccess, (state, { spendId, newCategory }) => {
+    if (!state.spend) return { ...state, loading: false };
+  
+    const index = state.spend.findIndex((e) => e.id === spendId);
+    
+    if (index !== -1) {
+      const updatedSpend = state.spend.map((singleSpend, idx) => 
+        idx === index ? { ...singleSpend, categoryId: newCategory } : singleSpend);
+
+      return {
+        ...state,
+        spend: updatedSpend,
+        loading: false,
+      };
+    } else {
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateSpendCategoryFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.updateSpendAmount, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.updateSpendAmountSuccess, (state, { spendId, amount }) => {
+    if (!state.spend) return { ...state, loading: false };
+  
+    const index = state.spend.findIndex((e) => e.id === spendId);
+    
+    if (index !== -1) {
+      const updatedSpend = state.spend.map((singleSpend, idx) => 
+        idx === index ? { ...singleSpend, amount } : singleSpend);
+
+      return {
+        ...state,
+        spend: updatedSpend,
+        loading: false,
+      };
+    } else {
+      return { ...state, loading: false };
+    }
+  }),  
+  on(BudgetActions.updateSpendAmountFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
   })),
 );
 

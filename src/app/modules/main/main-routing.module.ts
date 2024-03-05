@@ -27,6 +27,12 @@ const routes: Routes = [
         // TODO: do I need it if its already in main route?
         // canMatch: [checkAuthState],
       },
+      {
+        path: 'spend',
+        loadChildren: () => import('./spend/spend.module').then(m => m.SpendModule),
+        // TODO: do I need it if its already in main route?
+        // canMatch: [checkAuthState],
+      },
     ]
   }
 ];

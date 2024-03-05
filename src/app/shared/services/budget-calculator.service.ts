@@ -15,21 +15,46 @@ export class BudgetCalculatorService {
   
   public countCategorisedExpenses(arr: IExpense[]): number {
     return arr.reduce((acc: number, current: IExpense) => {
+      if (current.title === 'Daily') {
+        return acc;
+      }
       return acc + current.amount;
     }, 0);
+  }
+
+  public getUncategorisedSpend(arr: IExpense[]): IExpense {
+    const uncategorisedSpend: IExpense = arr.find((expense: IExpense) => expense.title === 'Daily')!;
+    return uncategorisedSpend;
   }
   
   public countNewDaily (total: number, dateStart: Timestamp, dateEnd: Timestamp, expenses: IExpense[]): number {
     return Math.floor((total - this.countCategorisedExpenses(expenses)) / this.countDaysDiff(dateStart, dateEnd));
   }
 
+  public getUpdatedUncategorisedExpenses (total: number, expenses: IExpense[]): any {
+    console.log('getUpdatedUncategorisedExpenses total => ', total);
+    console.log('getUpdatedUncategorisedExpenses expenses => ', expenses);
+    const uncategorisedSpendItem = {
+      ...this.getUncategorisedSpend(expenses),
+    };
+    const uncategorisedSpend = uncategorisedSpendItem.amount - uncategorisedSpendItem.balance;
+
+    const newDailyAmount = total - this.countCategorisedExpenses(expenses);
+    const newDailyBalance = newDailyAmount - uncategorisedSpend;
+    
+    return { expenseId: uncategorisedSpendItem.id, newAmount: newDailyAmount, newBalance: newDailyBalance}
+  }
+
   public isExpenseAmountValid(budget: IBudget, newAmount: number, oldAmount: number) {
+    const uncategorisedSpendObject = this.getUncategorisedSpend(budget.expenses);
+    const currentTotalDailySpend = uncategorisedSpendObject.amount - uncategorisedSpendObject.balance;
+
     const plannedSpend = this.countCategorisedExpenses(budget.expenses);
     const daysDiff = this.countDaysDiff(budget.dateStart, budget.dateEnd);
-    const newUncategorisedSpend = budget.total - plannedSpend + oldAmount - newAmount;
-    const amountLeft = newUncategorisedSpend; // TODO later: add fact daily spends here (newUncatgorisedSpend - fact daily spends)
+    const amountLeft = budget.total - plannedSpend + oldAmount - newAmount - currentTotalDailySpend;
     const dailyWithUncategorisedSpend = amountLeft / daysDiff;
-    if (dailyWithUncategorisedSpend > 1) {
+    console.log(dailyWithUncategorisedSpend)
+    if (dailyWithUncategorisedSpend >= 0) {
       return true;
     }
     return false;

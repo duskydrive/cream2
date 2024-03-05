@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, filter, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
+import { EMPTY, Observable, catchError, concatAll, concatMap, filter, finalize, forkJoin, from, map, mergeMap, of, switchMap, tap, toArray, withLatestFrom } from 'rxjs';
 import { BudgetService } from 'src/app/shared/services/budget.service';
 import * as BudgetActions from './budget.actions';
 import * as UserActions from '../user/user.actions';
 import * as UserSelectors from '../user/user.selectors';
 import * as BudgetSelectors from '../budget/budget.selectors';
 import * as SpinnerActions from '../spinner/spinner.actions';
-import { Store } from '@ngrx/store';
-import { IBudget } from 'src/app/shared/models/budget.interface';
+import { Action, Store } from '@ngrx/store';
+import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
 import { Router } from '@angular/router';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FirebaseError } from '@angular/fire/app';
@@ -75,25 +75,33 @@ export class BudgetEffects {
     this.actions$.pipe(
       ofType(BudgetActions.updateBudgetSuccess),
       withLatestFrom(this.store.select(BudgetSelectors.selectCurrentBudget)),
-      filter(([action, currentBudget]) => {
-        return !!currentBudget && 'title' in action.budgetData;
+      switchMap(([{ budgetData }, currentBudget]) => {
+        if (!currentBudget) return EMPTY;
+
+        const actionsToDispatch: Observable<Action>[] = [];
+        const budgetId = currentBudget.id;
+
+        if ('title' in budgetData) {
+            const newTitle = budgetData.title!;
+            actionsToDispatch.push(of(BudgetActions.updateBudgetTitleInList({ budgetId, newTitle })));
+        }
+
+        if ('total' in budgetData) {
+            actionsToDispatch.push(of(BudgetActions.updateDailyCategoryAmount()));
+        }
+
+        return from(actionsToDispatch).pipe(concatAll());
       }),
-      map(([{ budgetData }, currentBudget]) => {
-        const budgetId = currentBudget!.id;
-        const newTitle = budgetData.title!;
-        return BudgetActions.updateBudgetTitleInList({ budgetId, newTitle });
-      })
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
     )
   );
 
-
   triggerLoadBudgetsTitlesAndIds$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(UserActions.setUser, BudgetActions.createBudgetSuccess), // Listen for both actions
+      ofType(UserActions.setUser, BudgetActions.createBudgetSuccess),
       withLatestFrom(this.store.select(UserSelectors.selectUserId)),
       switchMap(([, userId]) => {
         if (!userId) {
-          // If we don't have a userId, return a failure action.
           return of(BudgetActions.loadBudgetsTitlesAndIdsFailure({ error: 'User ID is not available' }));
         }
         
@@ -138,6 +146,30 @@ export class BudgetEffects {
           catchError((error: FirebaseError) => {
             this.snackbarService.showError(error.code || 'some_error');
             return of(BudgetActions.loadBudgetFailure( { error }));
+          }),
+        )
+      }),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+  loadSpendByDate$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.loadSpendByDate),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId),
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      switchMap(([date, userId, budgetId]) => {
+        return this.budgetService.getSpendByDate(userId!, budgetId!, date.date).pipe(
+          map((spend: ISpend[]) => {  
+            return BudgetActions.loadSpendByDateSuccess( { spend });
+          }),
+          catchError((error: FirebaseError) => {
+            console.log('aha: ', error)
+            this.snackbarService.showError(error.code || 'some_error');
+            return of(BudgetActions.loadSpendByDateFailure( { error }));
           }),
         )
       }),
@@ -224,20 +256,46 @@ export class BudgetEffects {
 
   updateExpenseAmountAction$ = createEffect(() => 
     this.actions$.pipe(
-      ofType(BudgetActions.updateExpenseAmount),
+      ofType(BudgetActions.updateExpenseAmount, BudgetActions.deleteSpendSuccess),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       withLatestFrom(
         this.store.select(UserSelectors.selectUserId),
         this.store.select(BudgetSelectors.selectCurrentBudget)
       ),
       switchMap(([ { expenseId, newAmount, newBalance }, userId, budget ]) => {
-        return this.budgetService.updateExpenseAmount(userId!, budget!.id, expenseId, newAmount, newBalance).pipe(
-          map(({ expenseId, newAmount, newBalance }) => BudgetActions.updateExpenseAmountSuccess({ expenseId, newAmount, newBalance })),
-          catchError(error => {
-            return of(BudgetActions.updateExpenseAmountFailure({ error }))
-          })
-        )
-      }
+        return this.budgetService.updateExpenseAmount(userId!, budget!.id, expenseId, newAmount, newBalance)
+          .pipe(
+            map(( updatedExpense ) => BudgetActions.updateExpenseAmountSuccess({ updatedExpense })),
+            catchError(error => {
+              return of(BudgetActions.updateExpenseAmountFailure({ error }))
+            }),
+          )
+        }
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+
+  triggerUpdateDailyCategoryAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.updateExpenseAmountSuccess, BudgetActions.deleteExpenseSuccess, BudgetActions.updateDailyCategoryAmount),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudget),
+      ),
+      switchMap(( [ {}, userId, budget ] ) => {
+        const updatedDailyCategory = this.budgetCalculatorService.getUpdatedUncategorisedExpenses(budget!.total, budget!.expenses);
+        console.log('we arehere => updatedDailyCategory ', updatedDailyCategory)
+        return this.budgetService.updateExpenseAmount(userId!, budget!.id, updatedDailyCategory.expenseId, updatedDailyCategory.newAmount, updatedDailyCategory.newBalance)
+          .pipe(
+            map(( updatedExpense ) => BudgetActions.updateDailyCategorySuccess({ updatedExpense })),
+            catchError(error => {
+              return of(BudgetActions.updateDailyCategoryFailure({ error }))
+            }),
+          )
+        }
       ),
       tap(() => this.store.dispatch(SpinnerActions.endRequest())),
     )
@@ -245,7 +303,7 @@ export class BudgetEffects {
 
   triggerUpdateBudgetAction$ = createEffect(() => 
     this.actions$.pipe(
-      ofType(BudgetActions.updateExpenseAmountSuccess, BudgetActions.deleteExpenseSuccess),
+      ofType(BudgetActions.updateDailyCategorySuccess),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
       withLatestFrom(
         this.store.select(BudgetSelectors.selectCurrentBudget)
@@ -253,7 +311,7 @@ export class BudgetEffects {
       switchMap(([ expense, budget ]) => {
         const { total, dateStart, dateEnd, expenses } = budget!;
         const newDaily = this.budgetCalculatorService.countNewDaily(total, dateStart, dateEnd, expenses);
-
+        
         return of(BudgetActions.updateBudget({ budgetId: budget!.id, budgetData: { daily: newDaily }}));
       }
       ),
@@ -261,7 +319,49 @@ export class BudgetEffects {
     )
   );
 
-  deleteExpenseAmountAction$ = createEffect(() => 
+  updateBothExpenseBalances$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BudgetActions.updateMultipleExpenseBalances),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudget).pipe(
+          map(budget => budget ? budget.id : null)
+        )
+      ),
+      switchMap(([action, userId, budgetId]) => {
+        if (!userId || !budgetId) {
+          return of(BudgetActions.updateMultipleExpenseBalancesFailure({ error: 'Missing userId or budgetId' }));
+        }
+
+        const updateOperations = action.updates.map(update =>
+          this.budgetService.updateExpenseBalance(userId, budgetId, update.expenseId, update.newBalance)
+            .pipe(
+              map(() => update),
+              catchError(error => {
+                console.error(`Update failed for expenseId ${update.expenseId}`, error);
+                return of({ error });
+              })
+            )
+        );
+        return forkJoin(updateOperations).pipe(
+          map(results => {
+            const hasError = results.some(result => 'error' in result && result.error != null);
+            if (hasError) {
+              return BudgetActions.updateMultipleExpenseBalancesFailure({ error: 'One or more updates failed' });
+            } else {
+              const successfulUpdates = results.filter(r => !('error' in r && r.error != null)) as Array<{ expenseId: string; newBalance: number }>;
+        return BudgetActions.updateMultipleExpenseBalancesSuccess({ updates: successfulUpdates });
+            }
+          }),
+          catchError(error => of(BudgetActions.updateMultipleExpenseBalancesFailure({ error }))),
+          finalize(() => this.store.dispatch(SpinnerActions.endRequest())),
+        );
+      })
+    )
+  );
+
+  deleteExpenseAction$ = createEffect(() => 
     this.actions$.pipe(
       ofType(BudgetActions.deleteExpense),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
@@ -301,4 +401,145 @@ export class BudgetEffects {
       )
     )
   );
+
+  addSpendAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.addSpend),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId),
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      switchMap(([{ date }, userId, budgetId ]) => {
+        console.log('effects date', date)
+        return this.budgetService.addSpend(userId!, budgetId!, date).pipe(
+          map((spend: ISpend) => BudgetActions.addSpendSuccess({ spend })),
+          catchError(error => {
+            console.log('error => ', error)
+            return of(BudgetActions.addSpendFailure({ error }))
+          })
+        )
+      }
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+  deleteSpendAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.deleteSpend),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId)
+      ),
+      switchMap(([ { spendId, expenseId, newAmount, newBalance }, userId, budgetId ]) => {
+        return this.budgetService.deleteSpend(userId!, budgetId!, spendId ).pipe(
+          map(() => BudgetActions.deleteSpendSuccess({ spendId, expenseId, newAmount, newBalance })),
+          catchError(error => {
+            console.log(error)
+            return of(BudgetActions.deleteSpendFailure({ error }))
+          })
+        )
+      }
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+  updateSpendTitleAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.updateSpendTitle),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId)
+      ),
+      switchMap(([ { spendId, newTitle }, userId, budgetId ]) => {
+        return this.budgetService.updateSpendTitle(userId!, budgetId!, spendId, newTitle).pipe(
+          map(({ spendId, newTitle }) => BudgetActions.updateSpendTitleSuccess({ spendId, newTitle })),
+          catchError(error => {
+            return of(BudgetActions.updateSpendTitleFailure({ error }))
+          })
+        )
+      }
+      )
+    )
+  );
+
+  updateSpendCategoryAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.updateSpendCategory),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId)
+      ),
+      switchMap(([ { spendId, newCategory, amount }, userId, budgetId ]) => {
+        return this.budgetService.updateSpendCategory(userId!, budgetId!, spendId, newCategory).pipe(
+          map(({ spendId, newCategory }) => BudgetActions.updateSpendCategorySuccess({ spendId, newCategory, amount })),
+          catchError(error => {
+            return of(BudgetActions.updateSpendCategoryFailure({ error }))
+          }),
+        )
+      }),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+  // triggerUpdateExpenseBalance$ = createEffect(() => 
+  //   this.actions$.pipe(
+  //     ofType(BudgetActions.updateSpendCategorySuccess),
+  //     tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+  //     withLatestFrom(
+  //       this.store.select(UserSelectors.selectUserId),
+  //       this.store.select(BudgetSelectors.selectCurrentBudget)
+  //     ),
+  //     switchMap(([ { spendId, newCategory, amount }, userId, budget ]) => {
+  //       const expense = budget?.expenses.find((expense: IExpense) => expense.id === newCategory);
+
+  //       return this.budgetService.updateExpenseAmount(userId!, budget!.id, newCategory, expense!.amount, expense!.balance - amount)
+  //         .pipe(
+  //           map(( updatedExpense ) => BudgetActions.updateExpenseAmountSuccess({ updatedExpense })),
+  //           catchError(error => {
+  //             return of(BudgetActions.updateExpenseAmountFailure({ error }))
+  //           }),
+  //         )
+  //       }
+  //     ),
+  //     tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+  //   )
+  // );
+
+  
+
+  updateSpendAmountAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.updateSpendAmount),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudgetId)
+      ),
+      switchMap(([ { spendId, amount, payloadForNextAction }, userId, budgetId ]) => {
+        return this.budgetService.updateSpendAmount(userId!, budgetId!, spendId, amount).pipe(
+          map(({ spendId, amount }) => BudgetActions.updateSpendAmountSuccess({ spendId, amount, payloadForNextAction })),
+          catchError(error => {
+            return of(BudgetActions.updateSpendAmountFailure({ error }))
+          })
+        )
+      }
+      )
+    )
+  );
+
+  updateExpenseAmountAfterSpendSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BudgetActions.updateSpendAmountSuccess),
+      map(action => BudgetActions.updateExpenseAmount({
+        expenseId: action.payloadForNextAction.categoryId,
+        newAmount: action.payloadForNextAction.newAmount,
+        newBalance: action.payloadForNextAction.newBalance,
+      }))
+    )
+  );
+
 }

@@ -1,6 +1,6 @@
 import { createAction, props } from "@ngrx/store";
 import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
-import { IBudget, IExpense } from "src/app/shared/models/budget.interface";
+import { IBudget, IExpense, ISpend } from "src/app/shared/models/budget.interface";
 
 export const loadBudget = createAction(
   '[Budget] Load Budget',
@@ -105,7 +105,11 @@ export const updateExpenseTitleFailure = createAction(
   '[Budget] Update Expense Title Failure',
   props<{ error: any }>()
 );
-
+export interface IExpenseUpdatePayload {
+  expenseId: string, 
+  newAmount: number, 
+  newBalance: number,
+}
 export const updateExpenseAmount = createAction(
   '[Budget] Update Expense Amount',
   props<{ expenseId: string, newAmount: number, newBalance: number }>()
@@ -113,11 +117,55 @@ export const updateExpenseAmount = createAction(
 
 export const updateExpenseAmountSuccess = createAction(
   '[Budget] Update Expense Amount Success',
-  props<{ expenseId: string, newAmount: number, newBalance: number }>()
+  props<{ updatedExpense: IExpenseUpdatePayload }>()
 );
 
 export const updateExpenseAmountFailure = createAction(
   '[Budget] Update Expense Amount Failure',
+  props<{ error: any }>()
+);
+
+// export const updateExpenseBalance = createAction(
+//   '[Budget] Update Expense Balance',
+//   props<{ expenseId: string, newBalance: number }>()
+// );
+
+export const updateExpenseBalanceSuccess = createAction(
+  '[Budget] Update Expense Balance Success',
+  props<{ expenseId: string, newBalance: number }>()
+);
+
+export const updateExpenseBalanceFailure = createAction(
+  '[Budget] Update Expense Balance Failure',
+  props<{ error: any }>()
+);
+
+export const updateMultipleExpenseBalances = createAction(
+  '[Budget] Update Multiple Expense Balances',
+  props<{ updates: Array<{ expenseId: string; newBalance: number }> }>()
+);
+
+export const updateMultipleExpenseBalancesSuccess = createAction(
+  '[Budget] Update Multiple Expense Balances Success',
+  props<{ updates: Array<{ expenseId: string; newBalance: number }> }>()
+);
+
+export const updateMultipleExpenseBalancesFailure = createAction(
+  '[Budget] Update Multiple Expense Balances Failure',
+  props<{ error: any }>()
+);
+
+export const updateDailyCategoryAmount = createAction(
+  '[Budget] Update Daily Category Amount',
+);
+
+export const updateDailyCategorySuccess = createAction(
+  '[Budget] Update Daily Category Amount Success',
+  props<{ updatedExpense: IExpenseUpdatePayload }>()
+);
+
+export const updateDailyCategoryFailure = createAction(
+  '[Budget] Update Daily Category Amount Failure',
   props<{ error: any }>()
 );
 
@@ -162,4 +210,94 @@ export const copyBudget = createAction(
 
 export const resetCopiedBudget = createAction(
   '[Budget] Reset Copied Budget',
+);
+
+export const loadSpendByDate = createAction(
+  '[Budget] Load Spend By Date',
+  props<{ date: Date }>()
+);
+
+export const loadSpendByDateSuccess = createAction(
+  '[Budget] Load Spend By Date Success',
+  props<{ spend: ISpend[] }>()
+);
+
+export const loadSpendByDateFailure = createAction(
+  '[Budget] Load Spend By Date Failure',
+  props<{ error: any }>()
+);
+
+export const deleteSpend = createAction(
+  '[Budget] Delete Spend',
+  props<{ spendId: string, expenseId: string, newAmount: number, newBalance: number }>()
+);
+
+export const deleteSpendSuccess = createAction(
+  '[Budget] Delete Spend Success',
+  props<{ spendId: string, expenseId: string, newAmount: number, newBalance: number }>()
+);
+
+export const deleteSpendFailure = createAction(
+  '[Budget] Delete Spend Failure',
+  props<{ error: any }>()
+);
+
+export const addSpend = createAction(
+  '[Budget] Add Spend',
+  props<{ date: Date }>()
+);
+
+export const addSpendSuccess = createAction(
+  '[Budget] Add Spend Success',
+  props<{ spend: ISpend }>()
+);
+
+export const addSpendFailure = createAction(
+  '[Budget] Add Spend Failure',
+  props<{ error: any }>()
+);
+
+export const updateSpendTitle = createAction(
+  '[Budget] Update Spend Title',
+  props<{ spendId: string, newTitle: string }>()
+);
+
+export const updateSpendTitleSuccess = createAction(
+  '[Budget] Update Spend Title Success',
+  props<{ spendId: string, newTitle: string }>()
+);
+
+export const updateSpendTitleFailure = createAction(
+  '[Budget] Update Spend Title Failure',
+  props<{ error: any }>()
+);
+
+export const updateSpendCategory = createAction(
+  '[Budget] Update Spend Category',
+  props<{ spendId: string, newCategory: string, amount: number }>()
+);
+
+export const updateSpendCategorySuccess = createAction(
+  '[Budget] Update Spend Category Success',
+  props<{ spendId: string, newCategory: string, amount: number }>()
+);
+
+export const updateSpendCategoryFailure = createAction(
+  '[Budget] Update Spend Category Failure',
+  props<{ error: any }>()
+);
+
+export const updateSpendAmount = createAction(
+  '[Budget] Update Spend Amount',
+  props<{ spendId: string, amount: number, payloadForNextAction: any }>()
+);
+
+export const updateSpendAmountSuccess = createAction(
+  '[Budget] Update Spend Amount Success',
+  props<{ spendId: string, amount: number, payloadForNextAction: any }>()
+);
+
+export const updateSpendAmountFailure = createAction(
+  '[Budget] Update Spend Amount Failure',
+  props<{ error: any }>()
 );

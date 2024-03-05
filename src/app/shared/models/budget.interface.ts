@@ -18,3 +18,12 @@ export interface IExpense {
   balance: number,
   orderIndex: number,
 }
+
+export interface ISpend {
+  id: string,
+  title: string,
+  amount: number,
+  categoryId: string | null,
+  date: Timestamp,
+  created_at: Timestamp,
+}

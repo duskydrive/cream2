@@ -68,6 +68,8 @@ export class EditDialogComponent extends Unsub implements OnInit {
           daily: newDaily,
         },
       }));
+
+      this.store.dispatch(BudgetActions.updateDailyCategoryAmount());
       this.matDialogRef.close(true);
     } else {
       this.snackbarService.showError(`daily is negative: ${newDaily}`);

@@ -126,7 +126,7 @@ export class BudgetComponent extends Unsub implements OnInit {
   public onBlurExpenseTitle(index: number) {
     const group = this.expensesArray.at(index);
     if (group.get('title')!.value === group.get('originalTitle')!.value) return;
-    alert(3)
+
     this.store.dispatch(BudgetActions.updateExpenseTitle({
       expenseId: group.get('id')!.value, 
       newTitle: group.get('title')!.value 
@@ -147,7 +147,6 @@ export class BudgetComponent extends Unsub implements OnInit {
       map((budget: IBudget) => {
         const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount);
         if (isValid) {
-          alert('save')
           this.store.dispatch(BudgetActions.updateExpenseAmount({
             expenseId: group.get('id')!.value,
             newAmount,

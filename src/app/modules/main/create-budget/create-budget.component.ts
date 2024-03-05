@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, filter, map, switchMap, take, takeUntil, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, combineLatestWith, filter, map, switchMap, take, takeUntil, tap, throwError } from 'rxjs';
 import { Timestamp } from 'firebase/firestore';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Store } from '@ngrx/store';
@@ -93,19 +93,22 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
       dateEnd: budget.dateEnd.toDate(),
     });
 
+    this.expensesArray.clear();
+
     budget.expenses.forEach((expense: IExpense) => {
-      const copiedItem = this.createExpenseItem(expense.title, expense.amount);
-      this.expensesArray.push( copiedItem );
+      if (expense.title !== 'Daily') { 
+        const copiedItem = this.createExpenseItem(expense.title, expense.amount);
+        this.expensesArray.push( copiedItem );
+       };
     });
   
     this.totalDays$.next( this.budgetCalculatorService.countDaysDiff(budget.dateStart, budget.dateEnd) );
     this.categorisedExpenses$.next( this.budgetCalculatorService.countCategorisedExpenses(this.expensesArray.value) );
-
-    // TODO also when you create new budget - add new budget to budgetTitlesAndIds
   }
 
   public addExpenseItem(item: any) {
     this.expensesArray.push( item );
+    console.log('this.expensesArray.value', this.expensesArray.value)
   }
 
   public addRows(times: number) {
@@ -197,17 +200,19 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
           this.snackbarService.showError('daily_error');
           return throwError(() => new Error('Invalid daily amount'));
         }
-        return this.store.select(UserSelectors.selectUserId);
+        return this.store.select(UserSelectors.selectUserId).pipe(
+          combineLatestWith(this.categorisedExpenses$)
+        );
       }),
-      filter((userId: string | null): userId is string => !!userId),
+      filter(([userId, categorisedExpenses]) => !!userId && categorisedExpenses !== undefined),
       take(1),
       catchError(error => {
-        // TODO Handle or log the error as needed
         console.error(error);
         return EMPTY; // Prevent further execution in case of error
       })
-    ).subscribe((userId) => {
-      const expenses = prepareExpenses([...this.expensesArray.value]);
+    ).subscribe(([userId, categorisedExpenses]) => {
+      const uncategorisedExpenses = +this.getFormControl('total').value - categorisedExpenses;
+      const expenses = prepareExpenses([...this.expensesArray.value, {title: 'Daily', amount: uncategorisedExpenses}]);
       
       const budgetData: Omit<IBudget, 'id' | 'expenses'> = {
         title: this.getFormControl('title').value,
@@ -218,7 +223,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
         total: this.getFormControl('total').value,
       };
 
-      this.store.dispatch(BudgetActions.createBudget({ userId, budgetData, expenses }));
+      this.store.dispatch(BudgetActions.createBudget({ userId: userId!, budgetData, expenses }));
     });
 }
 }

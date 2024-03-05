@@ -27,3 +27,8 @@ export const selectBudgetsTitlesAndIds = createSelector(
   selectBudgetState,
   (state: IBudgetState) => state.budgetTitlesAndIds,
 );
+
+export const selectCurrentSpend = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.spend,
+);
