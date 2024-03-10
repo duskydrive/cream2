@@ -23,6 +23,7 @@
 
 ::ng-deep .plain-input {
   width: 100% !important; 
+  background-color: transparent;
   .mdc-text-field--outlined {
     padding: 0 !important;
     &.mdc-text-field--disabled .mdc-text-field__input {

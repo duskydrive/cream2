@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Unsub } from 'src/app/core/classes/unsub';
-import { IBudget } from 'src/app/shared/models/budget.interface';
+import { IBudget, ISpend } from 'src/app/shared/models/budget.interface';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { CURRENCY_LIST } from '../budget.constants';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
@@ -11,6 +11,10 @@ import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../../store/budget/budget.actions';
+import { BudgetService } from 'src/app/shared/services/budget.service';
+import { EMPTY, combineLatest, forkJoin, of, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import * as UserSelectors from '../../../../store/user/user.selectors';
+import * as BudgetSelectors from '../../../../store/budget/budget.selectors';
 
 @Component({
   selector: 'app-edit-dialog',
@@ -24,6 +28,7 @@ export class EditDialogComponent extends Unsub implements OnInit {
   constructor(
     public formHelpersService: FormHelpersService,
     public budgetCalculatorService: BudgetCalculatorService,
+    public budgetService: BudgetService,
     private formBuilder: FormBuilder,
     private matDialogRef: MatDialogRef<EditDialogComponent>,
     private snackbarService: SnackbarService,
@@ -49,6 +54,7 @@ export class EditDialogComponent extends Unsub implements OnInit {
 
   onSubmit() {
     if (this.editForm.invalid) {
+      console.log('111')
       this.editForm.markAllAsTouched();
       return;
     }
@@ -57,8 +63,27 @@ export class EditDialogComponent extends Unsub implements OnInit {
     const dateStartTimestamp = Timestamp.fromDate(this.getFormControl('dateStart').value);
     const dateEndTimestamp = Timestamp.fromDate(this.getFormControl('dateEnd').value);
     const newDaily = this.budgetCalculatorService.countNewDaily(newTotal, dateStartTimestamp, dateEndTimestamp, this.data.expenses);
-    
-    if (newDaily > 0) {
+    const isTotalValid = this.budgetCalculatorService.isTotalValid(newTotal, dateStartTimestamp, dateEndTimestamp, this.data.expenses);
+
+    combineLatest([
+      this.store.select(UserSelectors.selectUserId),
+      this.store.select(BudgetSelectors.selectCurrentBudgetId),
+    ]).pipe(
+      switchMap(([userId, budgetId]) => 
+        userId && budgetId ? this.budgetService.findSpendOutOfDateRange(userId, budgetId, dateStartTimestamp, dateEndTimestamp) : of([])
+      ),
+      takeUntil(this.destroy$),
+    ).subscribe((spendOutOfRange: ISpend[]) => {
+      if (spendOutOfRange.length) {
+        this.snackbarService.showError(`you have spend out of date range`);  
+        return;
+      }
+      
+      if (isTotalValid <= 0) {
+        this.snackbarService.showError(`daily is negative: ${isTotalValid}`);  
+      }
+
+      // TODO: check if daily is counted correctly after dates changed. Also current daily might be wrong. refresh budget and test
       this.store.dispatch(BudgetActions.updateBudget({ 
         budgetId: this.data.id, 
         budgetData: {
@@ -69,11 +94,8 @@ export class EditDialogComponent extends Unsub implements OnInit {
         },
       }));
 
-      this.store.dispatch(BudgetActions.updateDailyCategoryAmount());
       this.matDialogRef.close(true);
-    } else {
-      this.snackbarService.showError(`daily is negative: ${newDaily}`);
-    }
+    });
   }
 }
 

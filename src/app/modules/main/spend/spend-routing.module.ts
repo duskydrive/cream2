@@ -5,7 +5,7 @@ import { SpendComponent } from './spend.component';
 const routes: Routes = [
   {
     path: '',
-    title: 'Budget',
+    title: 'Spend',
     component: SpendComponent,
   }
 ];

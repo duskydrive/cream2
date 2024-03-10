@@ -32,3 +32,18 @@ export const selectCurrentSpend = createSelector(
   selectBudgetState,
   (state: IBudgetState) => state.spend,
 );
+
+export const selectTodayDaily = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.todayDaily,
+);
+
+export const selectExpenses = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.budget?.expenses,
+);
+
+export const selectDailyCategoryId = createSelector(
+  selectBudgetState,
+  (state: IBudgetState) => state.dailyCategoryId,
+);

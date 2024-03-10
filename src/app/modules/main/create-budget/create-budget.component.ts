@@ -108,7 +108,6 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
 
   public addExpenseItem(item: any) {
     this.expensesArray.push( item );
-    console.log('this.expensesArray.value', this.expensesArray.value)
   }
 
   public addRows(times: number) {
@@ -126,9 +125,6 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
       this.categorisedExpenses$,
     ]).pipe(
       map(([days, total, expenses]) => {
-        console.log('days', days);
-        console.log('total', total);
-        console.log('expenses', expenses);
         const uncategorisedExpenses = total - expenses;
         return Math.floor(uncategorisedExpenses / days);
       }),

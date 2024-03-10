@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, concatMap, forkJoin, from, map, of, switchMap, tap} from 'rxjs';
+import { Observable, catchError, combineLatest, concatMap, forkJoin, from, map, of, switchMap, tap} from 'rxjs';
 import { collection, deleteDoc, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, Timestamp, updateDoc, where, writeBatch } from '@angular/fire/firestore';
 import { IBudget, IExpense, ISpend } from '../models/budget.interface';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
@@ -70,29 +70,6 @@ export class BudgetService {
     );
   }
 
-  getDailyCategoryId(userId: string, budgetId: string): Observable<string | undefined> {
-    console.log('---userId', userId)
-    console.log('---budgetId', budgetId)
-    // Define the reference to the categories collection within a specific budget
-    const categoriesRef = collection(this.firestore, `users/${userId}/budgets/${budgetId}/expenses`);
-    // Create a query to find the "Daily" category
-    const q = query(categoriesRef, where('title', '==', 'Daily'));
-
-    // Execute the query and convert the Promise to an Observable
-    return from(getDocs(q)).pipe(
-      map(querySnapshot => {
-        console.log('querySnapshot', querySnapshot)
-        // Map through documents and return the first matching category ID
-        const categories = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        console.log('---categories', categories)
-        return categories.length > 0 ? categories[0].id : undefined;
-      })
-    );
-  }
-
   public updateBudget(userId: string, budgetId: string, budgetData: Partial<IBudget>): Observable<any> {
     const budgetDocRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}`);
 
@@ -140,9 +117,6 @@ export class BudgetService {
   }
 
   public updateExpenseAmount(userId: string, budgetId: string, expenseId: string, newAmount: number, newBalance: number): Observable<any> {
-    console.log('<--> expenseId', expenseId)
-    console.log('<--> newAmount', newAmount)
-    console.log('<--> newBalance', newBalance)
     const expenseRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/expenses/${expenseId}`);
 
     return from(updateDoc(expenseRef, { amount: newAmount, balance: newBalance })).pipe(
@@ -153,7 +127,6 @@ export class BudgetService {
             newAmount: snapshot.data()!['amount'],
             newBalance: snapshot.data()!['balance'],
           })),
-          tap((value) => console.log('tap val', value)),
         )
       )
     );
@@ -222,16 +195,45 @@ export class BudgetService {
     const q = query(spendCollectionRef, 
                     where('date', '>=', startTimestamp), 
                     where('date', '<=', endTimestamp), 
-                    orderBy('date'),
-                    orderBy('created_at')); // Orders results by 'date' in ascending order by default
+                    orderBy('date'));
   
     return from(getDocs(q)).pipe(
-      map(snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))),
+      map(snapshot => snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ISpend))),
+      map((arr: ISpend[]) => {
+        const data = [...arr];
+        return data.sort((a, b) => {
+          const dateA = a['created_at'].toDate();
+          const dateB = b.created_at.toDate();
+          return dateA.getTime() - dateB.getTime();
+        });
+      }),
       catchError(error => {
         throw 'Error fetching spend collection by date: ' + error;
       })
     );
   }
+
+  getPreviousSpend(userId: string, budgetId: string, date: Date, dailyCategoryId: string): Observable<number> {
+    const spendCollectionPath = `users/${userId}/budgets/${budgetId}/spend`;
+    const spendCollectionRef = collection(this.firestore, spendCollectionPath);
+  
+    const startTimestamp = Timestamp.fromDate(new Date(date.setHours(0, 0, 0, 0)));
+  
+    // TODO make id dynamic
+    const q = query(spendCollectionRef, where('date', '<', startTimestamp), where('categoryId', '==', dailyCategoryId), orderBy('date'));
+  
+    return from(getDocs(q)).pipe(
+      map(snapshot => {
+        const totalAmount = snapshot.docs.reduce((sum, doc) => sum + doc.data()['amount'], 0);
+        return totalAmount; // Return the total sum of amounts
+      }),
+      catchError(error => {
+        throw 'Error fetching previous spend collection: ' + error;
+      })
+    );
+  }
+  
+  
 
   public deleteSpend(userId: string, budgetId: string, spendId: string): Observable<any> {
     const spendRef = doc(this.firestore, `users/${userId}/budgets/${budgetId}/spend/${spendId}`);
@@ -239,43 +241,28 @@ export class BudgetService {
     return from(deleteDoc(spendRef));
   }
 
-  public addSpend(userId: string, budgetId: string, date: Date): Observable<ISpend> {
+  public addSpend(userId: string, budgetId: string, date: Date, dailyCategoryId: string): Observable<ISpend> {
     const spendCollectionRef = collection(this.firestore, `users/${userId}/budgets/${budgetId}/spend`);
     const spendDocRef = doc(spendCollectionRef);
-    // const spendQuery = query(spendCollectionRef);
 
-    return this.getDailyCategoryId(userId, budgetId).pipe(
-      switchMap(dailyCategoryId => {
-        // Assuming getDailyCategoryId returns a string ID or undefined
-        console.log('---dailyCategoryId', dailyCategoryId)
-        if (!dailyCategoryId) {
-          throw new Error('Daily category ID not found');
-        }
-        console.log('Timestamp.now()', Timestamp.now())
+    const spendQuery = query(spendCollectionRef);
+      return from(getDocs(spendQuery)).pipe(
+        map(querySnapshot => querySnapshot.size + 1),
+        switchMap(orderIndex => {
+          const newSpend: Omit<ISpend, 'id'> & { id: string } = {
+            id: spendDocRef.id,
+            title: '',
+            amount: 0,
+            date: Timestamp.fromDate(date),
+            created_at: Timestamp.now(),
+            categoryId: dailyCategoryId, 
+          };
 
-        const spendQuery = query(spendCollectionRef);
-        return from(getDocs(spendQuery)).pipe(
-          map(querySnapshot => querySnapshot.size + 1),
-          switchMap(orderIndex => {
-            console.log('---lol')
-            const newSpend: Omit<ISpend, 'id'> & { id: string } = {
-              id: spendDocRef.id,
-              title: '',
-              amount: 0,
-              date: Timestamp.fromDate(date),
-              created_at: Timestamp.now(),
-              categoryId: dailyCategoryId, // Set categoryId to the fetched Daily category ID
-              // orderIndex, // Use the calculated orderIndex
-            };
-
-            // Perform the document creation with the new spend data
-            return from(setDoc(spendDocRef, newSpend)).pipe(
-              map(() => newSpend) // Return the newSpend object to the subscriber
-            );
-          })
-        );
-      })
-    );
+          return from(setDoc(spendDocRef, newSpend)).pipe(
+            map(() => newSpend),
+          );
+        })
+      );
   }
 
   public updateSpendTitle(userId: string, budgetId: string, spendId: string, newTitle: string): Observable<any> {
@@ -320,6 +307,33 @@ export class BudgetService {
           }))
         )
       )
+    );
+  }
+
+  public findSpendOutOfDateRange(userId: string, budgetId: string, dateStart: Timestamp, dateEnd: Timestamp): Observable<any[]> {
+    const spendCollectionRef = collection(this.firestore, `users/${userId}/budgets/${budgetId}/spend`);
+  
+    // Adjust dateEnd to the start of the day to exclude spends on dateEnd
+    const adjustedDateEnd = new Date(dateEnd.toDate());
+    adjustedDateEnd.setHours(23, 59, 59, 999); // Set to start of the dateEnd day
+  
+    // Query for spends before the start date
+    const spendsBeforeStartQuery = query(spendCollectionRef, where('date', '<', dateStart));
+    const spendsBeforeStart$ = from(getDocs(spendsBeforeStartQuery)).pipe(
+      map(querySnapshot => querySnapshot.docs.map(doc => doc.data()))
+    );
+  
+    // Query for spends after the adjusted end date
+    // Use the Firestore Timestamp for the adjusted end date
+    const adjustedEndTimestamp = Timestamp.fromDate(adjustedDateEnd);
+    const spendsAfterEndQuery = query(spendCollectionRef, where('date', '>', adjustedEndTimestamp));
+    const spendsAfterEnd$ = from(getDocs(spendsAfterEndQuery)).pipe(
+      map(querySnapshot => querySnapshot.docs.map(doc => doc.data()))
+    );
+  
+    // Combine the two observables to get a single observable with spends outside the date range
+    return combineLatest([spendsBeforeStart$, spendsAfterEnd$]).pipe(
+      map(([before, after]) => [...before, ...after])
     );
   }
 }

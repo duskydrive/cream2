@@ -227,6 +227,35 @@ export const loadSpendByDateFailure = createAction(
   props<{ error: any }>()
 );
 
+export const loadPreviousSpend = createAction(
+  '[Budget] Load Previous Spend',
+  props<{ date: Date }>()
+);
+
+export const loadPreviousSpendSuccess = createAction(
+  '[Budget] Load Previous Spend Success',
+);
+
+export const loadPreviousSpendFailure = createAction(
+  '[Budget] Load Previous Spend Failure',
+  props<{ error: any }>()
+);
+
+export const countTodayDaily = createAction(
+  '[Budget] Count Today Daily',
+  props<{ date: Date, previousUncategorisedSpend: number }>()
+);
+
+export const countTodayDailySuccess = createAction(
+  '[Budget] Count Today Daily Success',
+  props<{ todayDaily: number }>()
+);
+
+export const countTodayDailyFailure = createAction(
+  '[Budget] Count Today Daily Failure',
+  props<{ error: any }>()
+);
+
 export const deleteSpend = createAction(
   '[Budget] Delete Spend',
   props<{ spendId: string, expenseId: string, newAmount: number, newBalance: number }>()
@@ -299,5 +328,15 @@ export const updateSpendAmountSuccess = createAction(
 
 export const updateSpendAmountFailure = createAction(
   '[Budget] Update Spend Amount Failure',
+  props<{ error: any }>()
+);
+
+export const getDailyCategoryIdSuccess = createAction(
+  '[Budget] Get Daily Category Id Success',
+  props<{ dailyCategoryId: string }>()
+);
+
+export const getDailyCategoryIdFailure = createAction(
+  '[Budget] Get Daily Category Id Failure',
   props<{ error: any }>()
 );

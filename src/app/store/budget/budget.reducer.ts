@@ -6,7 +6,9 @@ import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
 export interface IBudgetState {
   budget: IBudget | null,
   spend: ISpend[],
+  todayDaily: number | null,
   budgetTitlesAndIds: IBudgetTitleAndId[] | null,
+  dailyCategoryId: string | null,
   copiedBudget: IBudget | null;
   loading: boolean,
   error: any,
@@ -15,7 +17,9 @@ export interface IBudgetState {
 export const initialState: IBudgetState = {
   budget: null,
   spend: [],
+  todayDaily: null,
   budgetTitlesAndIds: [],
+  dailyCategoryId: null,
   copiedBudget: null,
   loading: false,
   error: null,
@@ -356,6 +360,33 @@ export const budgetReducer = createReducer(
     loading: false,
     error,
   })),
+  on(BudgetActions.loadPreviousSpend, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.loadPreviousSpendSuccess, (state) => ({
+    ...state,
+    loading: false,
+  })),
+  on(BudgetActions.loadPreviousSpendFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.countTodayDaily, state => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.countTodayDailySuccess, (state, { todayDaily }) => ({
+    ...state,
+    loading: false,
+    todayDaily,
+  })),
+  on(BudgetActions.countTodayDailyFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
   on(BudgetActions.deleteSpend, state => ({
     ...state,
     loading: true,
@@ -471,6 +502,14 @@ export const budgetReducer = createReducer(
   on(BudgetActions.updateSpendAmountFailure, (state, { error }) => ({
     ...state,
     loading: false,
+    error,
+  })),
+  on(BudgetActions.getDailyCategoryIdSuccess, (state, { dailyCategoryId }) => ({
+    ...state,
+    dailyCategoryId,
+  })),  
+  on(BudgetActions.getDailyCategoryIdFailure, (state, { error }) => ({
+    ...state,
     error,
   })),
 );

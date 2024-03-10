@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../store/budget/budget.actions';
@@ -8,10 +8,9 @@ import * as UserSelectors from 'src/app/store/user/user.selectors';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
-import { EMPTY, Observable, Subject, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap} from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subject, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
 import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
@@ -25,7 +24,7 @@ import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
   selector: 'app-spend',
   templateUrl: './spend.component.html',
   styleUrls: ['./spend.component.scss'],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpendComponent extends Unsub implements OnInit {
   public displayedColumns: string[] = ['items', 'category', 'amount', 'balance', 'action'];
@@ -33,6 +32,10 @@ export class SpendComponent extends Unsub implements OnInit {
   public currentBudgetId$: Observable<string | undefined> = this.store.select(BudgetSelectors.selectCurrentBudgetId);
   public budgets$: Observable<IBudgetTitleAndId[] | null> = this.store.select(BudgetSelectors.selectBudgetsTitlesAndIds);
   public currentSpend$: Observable<ISpend[]> = this.store.select(BudgetSelectors.selectCurrentSpend);
+  public todayDaily$: Observable<number | null> = this.store.select(BudgetSelectors.selectTodayDaily);
+  private userId$: Observable<string | null> = this.store.select(UserSelectors.selectUserId);
+  private dailyCategoryId$: Observable<string | null> = this.store.select(BudgetSelectors.selectDailyCategoryId);
+  public todaysSpend$: BehaviorSubject<number>= new BehaviorSubject(0); 
   public expenses: IExpense[] = [];
   public dayOfWeek$ = new Subject();
   public dataSource: any[] = [];
@@ -40,7 +43,13 @@ export class SpendComponent extends Unsub implements OnInit {
   public minCalendarDate: Date | null = null;
   public maxCalendarDate: Date | null = null;
   public spendForm: FormGroup;
-  private userId$: Observable<string | null> = this.store.select(UserSelectors.selectUserId);
+  public todaysLeft$: Observable<number> = this.todaysSpend$.pipe(
+    withLatestFrom(this.todayDaily$),
+    map(([todaysSpend, todayDaily]) => {
+      return todayDaily ? (todayDaily - todaysSpend) : 0;
+    }),
+    takeUntil(this.destroy$),
+  );
 
   @ViewChild(MatTable) table!: MatTable<any>;
 
@@ -79,10 +88,11 @@ export class SpendComponent extends Unsub implements OnInit {
     ).subscribe();
 
     this.currentDate.valueChanges.pipe(
-      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
+      // distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       takeUntil(this.destroy$),
     ).subscribe((date: Date) => {
       setTimeout(() => {
+        this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
         this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
         this.dayOfWeek$.next(moment(date).format('dddd'))
       });
@@ -90,35 +100,18 @@ export class SpendComponent extends Unsub implements OnInit {
 
     this.setupSpendArray();
     
-    // this.currentBudget$.pipe(
-    //   distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
-    //   // distinctUntilChanged((prev: IBudget | null, curr: IBudget | null) => {
-    //   //   // Return true if the previous and current IDs are the same, which will prevent the emission.
-    //   //   // Also considers the case where both the previous and current budgets are null.
-    //   //   return prev?.id === curr?.id;
-    //   // }),
-    //   takeUntil(this.destroy$),
-    // ).subscribe((budget: IBudget | null) => {
-    //   if (budget) {
-    //     this.currentDate!.setValue(budget.dateStart.toDate());
-    //     this.minCalendarDate = budget.dateStart.toDate();
-    //     this.maxCalendarDate = budget.dateEnd.toDate();
-    //   }
-    // });
     this.currentBudget$.pipe(
-      // Start with a null value to ensure pairwise has a previous value on the first emission
       startWith(null as IBudget | null),
-      // Use pairwise to get both the previous and current values
       pairwise(),
+      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       takeUntil(this.destroy$),
     ).subscribe(([prevBudget, currBudget]: [IBudget | null, IBudget | null]) => {
-      // Update currentDate only if the ID has changed
       if (prevBudget?.id !== currBudget?.id && currBudget) {
         this.currentDate!.setValue(currBudget.dateStart.toDate());
         this.minCalendarDate = currBudget.dateStart.toDate();
         this.maxCalendarDate = currBudget.dateEnd.toDate();
       }
-    });
+    }); 
   }
     
   public changeBudget(budgetId: string) {
@@ -133,7 +126,6 @@ export class SpendComponent extends Unsub implements OnInit {
 
   private setupSpendArray() {
     this.currentBudget$.pipe(
-      // take(1),
       switchMap(budget => {
         if (budget) {
           this.expenses = budget.expenses;
@@ -146,13 +138,27 @@ export class SpendComponent extends Unsub implements OnInit {
       }),
       takeUntil(this.destroy$),
     ).subscribe(({ spendArray, balances }) => {
-      this.spendArray.clear();
+      this.spendArray.clear();      
       spendArray.forEach(spend => this.addSpendToFormArray(spend, balances));
-      // alert('rerender')
+      this.countTodaysSpend(spendArray);
       if (this.table) this.table.renderRows();
     });
   }
 
+  private countTodaysSpend(spendArray: ISpend[]) {
+    this.dailyCategoryId$.pipe(
+      take(1),
+    ).subscribe((dailyCategoryId: string | null) => {
+      if (dailyCategoryId) {
+        const dailySpend = spendArray.filter((spend: ISpend) => spend.categoryId === dailyCategoryId);
+        const todaysSpend = dailySpend.reduce((acc, cur) => {
+          return acc + cur.amount;
+        }, 0);
+        this.todaysSpend$.next(todaysSpend);
+      }
+    })
+  }
+  
   private mapCategoryBalances(expenses: IExpense[]): Map<string | null, number> {
     const balanceMap = new Map<string, number>();
     expenses.forEach(expense => balanceMap.set(expense.id, expense.balance));
@@ -274,13 +280,11 @@ export class SpendComponent extends Unsub implements OnInit {
   }
 
   public handleCategoryChange(index: number) {
-    // WHEN YOU CHANGE CATEGORY YOU NEED TO COUNT ALL CATEGORY!!
     const group = this.spendArray.at(index);
     const spendId = group.get('id')!.value;;
     const newCategory = group.get('categoryId')!.value;
     const oldCategory = group.get('originalCategory')!.value;
     const amount = group.get('amount')!.value;
-    // const oldAmount = group.get('originalAmount')!.value;
   
     if (newCategory === oldCategory) {
       return;
@@ -327,10 +331,7 @@ export class SpendComponent extends Unsub implements OnInit {
         this.snackbarService.showError('something went wrong');
       }
     });
-
-
   }
-
 
   identify(index: number, item: IBudgetTitleAndId){
     return item.id;

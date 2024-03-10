@@ -31,9 +31,12 @@ export class BudgetCalculatorService {
     return Math.floor((total - this.countCategorisedExpenses(expenses)) / this.countDaysDiff(dateStart, dateEnd));
   }
 
+  public isTotalValid (total: number, dateStart: Timestamp, dateEnd: Timestamp, expenses: IExpense[]): number {
+    const dailySpend = this.getUncategorisedSpend(expenses);
+    return Math.floor((total - this.countCategorisedExpenses(expenses) - (dailySpend.amount - dailySpend.balance) ) / this.countDaysDiff(dateStart, dateEnd));
+  }
+
   public getUpdatedUncategorisedExpenses (total: number, expenses: IExpense[]): any {
-    console.log('getUpdatedUncategorisedExpenses total => ', total);
-    console.log('getUpdatedUncategorisedExpenses expenses => ', expenses);
     const uncategorisedSpendItem = {
       ...this.getUncategorisedSpend(expenses),
     };
@@ -53,7 +56,7 @@ export class BudgetCalculatorService {
     const daysDiff = this.countDaysDiff(budget.dateStart, budget.dateEnd);
     const amountLeft = budget.total - plannedSpend + oldAmount - newAmount - currentTotalDailySpend;
     const dailyWithUncategorisedSpend = amountLeft / daysDiff;
-    console.log(dailyWithUncategorisedSpend)
+    
     if (dailyWithUncategorisedSpend >= 0) {
       return true;
     }

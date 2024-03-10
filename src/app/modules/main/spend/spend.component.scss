@@ -4,7 +4,7 @@
 
 
 .heading-wrapper {
-  background-color: vars.$background-card;
+  background-color: vars.$heading-panel;
 }
 
 .heading-column {
@@ -40,6 +40,7 @@
 
 ::ng-deep .plain-input {
   width: 100% !important; 
+  background-color: transparent;
   .mdc-text-field--outlined {
     padding: 0 !important;
     &.mdc-text-field--disabled .mdc-text-field__input {
@@ -62,7 +63,10 @@
   min-width: 115px; 
 }
 
-::ng-deep .cdk-column-category,
+::ng-deep .cdk-column-category {
+  flex: 2 1 0px;
+}
+
 ::ng-deep .cdk-column-amount,
 ::ng-deep .cdk-column-balance {
   flex: 1 1 0px;
@@ -92,8 +96,7 @@
   height: 60px;
 }
 
-.table-footer-bottom,
-.table-footer-top {
+.table-footer {
   background: vars.$accent;
   color: vars.$white-color;
   div {
@@ -114,10 +117,6 @@
       min-width: 115px; 
     }
   }
-}
-
-.table-footer-bottom {
-  background: vars.$primary;
 }
 
 ::ng-deep .custom-mat-menu {
