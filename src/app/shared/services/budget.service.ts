@@ -78,18 +78,18 @@ export class BudgetService {
     );
   }
 
-  public getBudgetsTitlesAndIds(userId: string): Observable<IBudgetTitleAndId[]> {
+  public getBudgetsTitlesAndIds(userId: string, isArchived = false): Observable<IBudgetTitleAndId[]> {
     const budgetsCol = collection(this.firestore, `users/${userId}/budgets`);
+    const q = query(budgetsCol, where('isArchived', '==', isArchived));
     
-    return from(getDocs(budgetsCol)).pipe(
-      map(querySnapshot => {
-        return querySnapshot.docs.map(doc => ({
+    return from(getDocs(q)).pipe(
+      map(querySnapshot => querySnapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data()['title']
-        }));
-      })
+      })))
     );
-  }
+}
+
 
   public updateExpensesOrder(userId: string, budgetId: string, expenses: IExpense[]): Observable<any> {
     const batch = writeBatch(this.firestore);
@@ -331,9 +331,32 @@ export class BudgetService {
       map(querySnapshot => querySnapshot.docs.map(doc => doc.data()))
     );
   
-    // Combine the two observables to get a single observable with spends outside the date range
     return combineLatest([spendsBeforeStart$, spendsAfterEnd$]).pipe(
       map(([before, after]) => [...before, ...after])
     );
+  }
+
+  public addFix(userId: string, budgetId: string, date: Timestamp, dailyCategoryId: string): Observable<ISpend> {
+    const spendCollectionRef = collection(this.firestore, `users/${userId}/budgets/${budgetId}/spend`);
+    const spendDocRef = doc(spendCollectionRef);
+
+    const spendQuery = query(spendCollectionRef);
+      return from(getDocs(spendQuery)).pipe(
+        map(querySnapshot => querySnapshot.size + 1),
+        switchMap(orderIndex => {
+          const newSpend: Omit<ISpend, 'id'> & { id: string } = {
+            id: spendDocRef.id,
+            title: 'Fix',
+            amount: 0,
+            date,
+            created_at: Timestamp.now(),
+            categoryId: dailyCategoryId, 
+          };
+
+          return from(setDoc(spendDocRef, newSpend)).pipe(
+            map(() => newSpend),
+          );
+        })
+      );
   }
 }

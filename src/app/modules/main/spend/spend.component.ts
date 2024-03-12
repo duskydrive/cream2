@@ -10,7 +10,7 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
 import { Unsub } from 'src/app/core/classes/unsub';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
-import { BehaviorSubject, EMPTY, Observable, Subject, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subject, combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
 import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
@@ -88,15 +88,18 @@ export class SpendComponent extends Unsub implements OnInit {
     ).subscribe();
 
     this.currentDate.valueChanges.pipe(
-      // distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
+      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       takeUntil(this.destroy$),
     ).subscribe((date: Date) => {
       setTimeout(() => {
-        this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
-        this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
-        this.dayOfWeek$.next(moment(date).format('dddd'))
+        if (date) {
+          this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
+          this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
+          this.dayOfWeek$.next(moment(date).format('dddd'))
+        }
       });
     });
+    
 
     this.setupSpendArray();
     
@@ -107,6 +110,7 @@ export class SpendComponent extends Unsub implements OnInit {
       takeUntil(this.destroy$),
     ).subscribe(([prevBudget, currBudget]: [IBudget | null, IBudget | null]) => {
       if (prevBudget?.id !== currBudget?.id && currBudget) {
+        console.log(11111)
         this.currentDate!.setValue(currBudget.dateStart.toDate());
         this.minCalendarDate = currBudget.dateStart.toDate();
         this.maxCalendarDate = currBudget.dateEnd.toDate();
@@ -245,6 +249,7 @@ export class SpendComponent extends Unsub implements OnInit {
   }
 
   public changeDateByBtn(direction: 'next' | 'prev') {
+    console.log(777777)
     const currentDate = moment(this.currentDate.value).startOf('day');
     const modifiedDate = direction === 'next' ? currentDate.clone().add(1, 'days') : currentDate.clone().subtract(1, 'days');
   

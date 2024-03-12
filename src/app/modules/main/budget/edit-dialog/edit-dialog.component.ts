@@ -10,9 +10,9 @@ import { Timestamp } from '@angular/fire/firestore';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
-import * as BudgetActions from '../../../../store/budget/budget.actions';
 import { BudgetService } from 'src/app/shared/services/budget.service';
-import { EMPTY, combineLatest, forkJoin, of, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { combineLatest, of, switchMap, takeUntil } from 'rxjs';
+import * as BudgetActions from '../../../../store/budget/budget.actions';
 import * as UserSelectors from '../../../../store/user/user.selectors';
 import * as BudgetSelectors from '../../../../store/budget/budget.selectors';
 
@@ -54,7 +54,6 @@ export class EditDialogComponent extends Unsub implements OnInit {
 
   onSubmit() {
     if (this.editForm.invalid) {
-      console.log('111')
       this.editForm.markAllAsTouched();
       return;
     }
@@ -83,7 +82,6 @@ export class EditDialogComponent extends Unsub implements OnInit {
         this.snackbarService.showError(`daily is negative: ${isTotalValid}`);  
       }
 
-      // TODO: check if daily is counted correctly after dates changed. Also current daily might be wrong. refresh budget and test
       this.store.dispatch(BudgetActions.updateBudget({ 
         budgetId: this.data.id, 
         budgetData: {

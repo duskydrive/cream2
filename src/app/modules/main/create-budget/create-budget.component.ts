@@ -204,7 +204,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
       take(1),
       catchError(error => {
         console.error(error);
-        return EMPTY; // Prevent further execution in case of error
+        return EMPTY;
       })
     ).subscribe(([userId, categorisedExpenses]) => {
       const uncategorisedExpenses = +this.getFormControl('total').value - categorisedExpenses;
@@ -217,6 +217,7 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
         currency: this.getFormControl('currency').value,
         daily: currentDaily,
         total: this.getFormControl('total').value,
+        isArchived: false,
       };
 
       this.store.dispatch(BudgetActions.createBudget({ userId: userId!, budgetData, expenses }));

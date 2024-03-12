@@ -17,6 +17,10 @@ export const loadBudgetFailure = createAction(
   props<{ error: any }>()
 );
 
+export const resetBudget = createAction(
+  '[Budget] Reset Budget',
+);
+
 export const createBudget = createAction(
   '[Budget] Create Budget',
   props<{ userId: string, budgetData: Omit<IBudget, 'id' | 'expenses'>, expenses: Omit<IExpense, 'id'>[] }>()
@@ -338,5 +342,20 @@ export const getDailyCategoryIdSuccess = createAction(
 
 export const getDailyCategoryIdFailure = createAction(
   '[Budget] Get Daily Category Id Failure',
+  props<{ error: any }>()
+);
+
+export const addFix = createAction(
+  '[Budget] Add Fix',
+  props<{ amount: number }>()
+);
+
+export const addFixSuccess = createAction(
+  '[Budget] Add Fix Success',
+  props<{ spendId: string, amount: number }>()
+);
+
+export const addFixFailure = createAction(
+  '[Budget] Add Fix Failure',
   props<{ error: any }>()
 );

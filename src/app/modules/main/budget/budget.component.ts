@@ -11,7 +11,7 @@ import { Unsub } from 'src/app/core/classes/unsub';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
-import { Observable, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap} from 'rxjs';
+import { EMPTY, Observable, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap} from 'rxjs';
 import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
@@ -21,6 +21,10 @@ import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
 import { EditDialogComponent } from './edit-dialog/edit-dialog.component';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 import { Router } from '@angular/router';
+import { ReviseDialogComponent } from './revise-dialog/revise-dialog.component';
+import { ArchiveDialogComponent } from './archive-dialog/archive-dialog.component';
+import { ArchiveListDialogComponent } from './archive-list-dialog/archive-list-dialog.component';
+import { BudgetService } from 'src/app/shared/services/budget.service';
 
 @Component({
   selector: 'app-budget',
@@ -42,6 +46,7 @@ export class BudgetComponent extends Unsub implements OnInit {
   constructor(
     public formHelpersService: FormHelpersService,
     public budgetCalculatorService: BudgetCalculatorService,
+    public budgetService: BudgetService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
     private router: Router,
@@ -71,17 +76,19 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe((budget: IBudget | null) => {
       this.expensesArray.clear();
 
-      budget?.expenses.forEach((expense: IExpense) => {
-        this.expensesArray.push(this.formBuilder.group({
-          id: expense.id,
-          title: expense.title,
-          originalTitle: expense.title,
-          amount: expense.amount,
-          originalAmount: expense.amount,
-          balance: expense.balance,
-          orderIndex: expense.orderIndex,
-        }));
-      });
+      if (budget) {
+        budget.expenses.forEach((expense: IExpense) => {
+          this.expensesArray.push(this.formBuilder.group({
+            id: expense.id,
+            title: expense.title,
+            originalTitle: expense.title,
+            amount: expense.amount,
+            originalAmount: expense.amount,
+            balance: expense.balance,
+            orderIndex: expense.orderIndex,
+          }));
+        });
+      }
 
       if (this.table) {
         this.table.renderRows(); 
@@ -166,6 +173,51 @@ export class BudgetComponent extends Unsub implements OnInit {
       switchMap((budget: IBudget | null) => this.matDialog.open(EditDialogComponent, {
         data: {
           ...budget,
+        }
+      }).afterClosed()),
+      take(1),
+    ).subscribe();
+  }
+
+  openReviseDialog() {
+    return this.currentBudget$.pipe(
+      switchMap((budget: IBudget | null) => this.matDialog.open(ReviseDialogComponent, {
+        data: {
+          expenses: budget?.expenses,
+        }
+      }).afterClosed()),
+      take(1),
+    ).subscribe();
+  }
+
+  openArchiveDialog() {
+    return this.currentBudget$.pipe(
+      switchMap((budget: IBudget | null) => {
+        if (budget) {
+          return this.matDialog.open(ArchiveDialogComponent, {
+            data: {
+              id: budget?.id,
+              title: budget?.title,
+            }
+          }).afterClosed()
+        }
+        return EMPTY;
+      }),
+      take(1),
+    ).subscribe();
+  }
+
+  openArchiveListDialog() {
+    return this.userId$.pipe(
+      switchMap((userId: string | null) => {
+        if (userId) {
+          return this.budgetService.getBudgetsTitlesAndIds(userId, true);
+        }
+        return EMPTY;
+      }),
+      switchMap((budgets: IBudgetTitleAndId[]) => this.matDialog.open(ArchiveListDialogComponent, {
+        data: {
+          budgets,
         }
       }).afterClosed()),
       take(1),

@@ -9,6 +9,7 @@ export interface IBudget {
   daily: number,
   currency: string,
   expenses: IExpense[],
+  isArchived: boolean,
 }
 
 export interface IExpense {

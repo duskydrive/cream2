@@ -99,6 +99,10 @@
 
 </div>
 
+<div class="w-full text-right mt-3">
+	<span class="underline cursor-pointer" (click)="openArchiveListDialog()">Archive</span>
+</div>
+
 <mat-menu #menu="matMenu" class="custom-mat-menu">
 	<button mat-menu-item (click)="openEditDialog()">
 		<mat-icon>edit</mat-icon>
@@ -108,11 +112,11 @@
 		<mat-icon>file_copy</mat-icon>
 		<span>Copy</span>
 	</button>
-	<button mat-menu-item>
+	<button mat-menu-item (click)="openReviseDialog()">
     <mat-icon>check_circle</mat-icon>
     <span>Revise</span>
   </button>
-  <button mat-menu-item>
+  <button mat-menu-item (click)="openArchiveDialog()">
     <mat-icon>delete</mat-icon>
     <span>Archive</span>
   </button>

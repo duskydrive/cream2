@@ -59,14 +59,23 @@ export const budgetReducer = createReducer(
     ...state,
     loading: true,
   })),
-  on(BudgetActions.updateBudgetSuccess, (state, { budgetData }) => ({
-    ...state,
-    loading: false,
-    budget: {
-      ...state.budget,
-      ...(budgetData as IBudget),
-    },
-  })),
+  on(BudgetActions.updateBudgetSuccess, (state, { budgetData }) => {
+    if (budgetData.hasOwnProperty('isArchived')) {
+      return {
+        ...state,
+        loading: false,
+      };
+    } else {
+      return {
+        ...state,
+        loading: false,
+        budget: {
+          ...state.budget,
+          ...(budgetData as IBudget),
+        },
+      }
+    }
+  }),
   on(BudgetActions.updateBudgetFailure, (state, { error }) => ({
     ...state,
     loading: false,
@@ -511,6 +520,29 @@ export const budgetReducer = createReducer(
   on(BudgetActions.getDailyCategoryIdFailure, (state, { error }) => ({
     ...state,
     error,
+  })),
+  on(BudgetActions.addFix, (state) => ({
+    ...state,
+    loading: true,
+  })),
+  on(BudgetActions.addFixSuccess, (state) => ({
+    ...state,
+    loading: false,
+  })),  
+  on(BudgetActions.addSpendFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+  on(BudgetActions.resetBudget, (state) => ({
+    ...state,
+    budget: null,
+    spend: [],
+    todayDaily: null,
+    dailyCategoryId: null,
+    copiedBudget: null,
+    loading: false,
+    error: null,
   })),
 );
 

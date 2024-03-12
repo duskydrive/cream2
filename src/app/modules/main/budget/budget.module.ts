@@ -6,6 +6,9 @@ import { SharedModule } from 'src/app/shared/shared.module';
 import { BudgetComponent } from './budget.component';
 import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
 import { EditDialogComponent } from './edit-dialog/edit-dialog.component';
+import { ReviseDialogComponent } from './revise-dialog/revise-dialog.component';
+import { ArchiveDialogComponent } from './archive-dialog/archive-dialog.component';
+import { ArchiveListDialogComponent } from './archive-list-dialog/archive-list-dialog.component';
 import { BudgetRoutingModule } from './budget-routing.module';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,6 +29,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     BudgetComponent,
     DeleteDialogComponent,
     EditDialogComponent,
+    ReviseDialogComponent,
+    ArchiveDialogComponent,
+    ArchiveListDialogComponent,
   ],
   imports: [
     SharedModule,

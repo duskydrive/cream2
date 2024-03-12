@@ -1,0 +1,18 @@
+<div class="py-3">
+  <h1 mat-dialog-title class="!text-3xl !mb-5">{{ 'archive_list' | translate }}</h1>
+<mat-dialog-content>
+  <p>Choose budget you would like to restore</p>
+  <form [formGroup]="budgetsForm" class="pt-2">
+    <mat-form-field class="w-full" appearance="outline" color="accent">
+      <mat-label>{{ 'budget' | translate }}</mat-label>
+      <mat-select formControlName="budget">
+        <mat-option *ngFor="let budget of data.budgets" [value]="budget.id">{{ budget.title }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions class="!w-100 !justify-between !px-6">
+  <button mat-stroked-button color="primary" mat-dialog-close>{{ 'cancel' | translate }}</button>
+  <button mat-raised-button cdkFocusInitial (click)="restoreBudget()" [disabled]="!budget.value" color="accent">{{ 'restore' | translate }}</button>
+</mat-dialog-actions>
+</div>

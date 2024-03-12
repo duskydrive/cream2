@@ -74,19 +74,39 @@ export class BudgetEffects {
   updateBudgetSuccess$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BudgetActions.updateBudgetSuccess),
-      withLatestFrom(this.store.select(BudgetSelectors.selectCurrentBudget)),
-      switchMap(([{ budgetData }, currentBudget]) => {
-        if (!currentBudget) return EMPTY;
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudget,
+      )),
+      switchMap(([{ budgetData }, userId, currentBudget]) => {
+        if (!currentBudget && 'isArchived' in budgetData && budgetData['isArchived'] === false) {
+          return of(BudgetActions.loadBudgetsTitlesAndIds({ userId: userId! }));
+        } else if (!currentBudget) {
+          return EMPTY
+        };
 
         const actionsToDispatch: Observable<Action>[] = [];
         const budgetId = currentBudget.id;
-
-        actionsToDispatch.push(of(BudgetActions.updateDailyCategoryAmount()));
 
         if ('title' in budgetData) {
             const newTitle = budgetData.title!;
             actionsToDispatch.push(of(BudgetActions.updateBudgetTitleInList({ budgetId, newTitle })));
         }
+
+        if ('total' in budgetData) {
+            actionsToDispatch.push(of(BudgetActions.updateDailyCategoryAmount()));
+        }
+
+        if ('isArchived' in budgetData && budgetData['isArchived'] === true) {
+          actionsToDispatch.push(of(BudgetActions.resetBudget()));
+        }
+
+        if ('isArchived' in budgetData && budgetData['isArchived'] === false) {
+          actionsToDispatch.push(of(BudgetActions.loadBudgetsTitlesAndIds({ userId: userId! })));
+        }
+
+        console.log(333)
+        console.log('budgetData', budgetData)
 
         return from(actionsToDispatch).pipe(concatAll());
       }),
@@ -96,7 +116,7 @@ export class BudgetEffects {
 
   triggerLoadBudgetsTitlesAndIds$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(UserActions.setUser, BudgetActions.createBudgetSuccess),
+      ofType(UserActions.setUser, BudgetActions.createBudgetSuccess, BudgetActions.resetBudget),
       withLatestFrom(this.store.select(UserSelectors.selectUserId)),
       switchMap(([, userId]) => {
         if (!userId) {
@@ -579,5 +599,45 @@ export class BudgetEffects {
       }))
     )
   );
+
+  addFixAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(BudgetActions.addFix),
+      withLatestFrom(
+        this.store.select(UserSelectors.selectUserId),
+        this.store.select(BudgetSelectors.selectCurrentBudget),
+        this.store.select(BudgetSelectors.selectDailyCategoryId),
+      ),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      switchMap(([{ amount }, userId, budget, dailyCategoryId ]) => {
+        return this.budgetService.addFix(userId!, budget!.id, budget!.dateStart, dailyCategoryId!).pipe(
+          map((spend: ISpend) => BudgetActions.addFixSuccess({spendId: spend.id, amount})),
+          catchError(error => {
+            return of(BudgetActions.addSpendFailure({ error }))
+          })
+        )
+      }),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    ));
+
+    addFixSuccessAction$ = createEffect(() => 
+      this.actions$.pipe(
+        ofType(BudgetActions.addFixSuccess),
+        withLatestFrom(
+          this.store.select(BudgetSelectors.selectCurrentBudget),
+          this.store.select(BudgetSelectors.selectDailyCategoryId),
+        ),
+        tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+        switchMap(([{ spendId, amount }, budget, dailyCategoryId ]) => {
+          const dailyBudgetCategory = budget?.expenses.find((expense: IExpense) => expense.id === dailyCategoryId);
+
+          if (dailyBudgetCategory!.balance - (-amount) <= 0) {
+            return of(BudgetActions.updateSpendAmountFailure({ error: 'cant fix, amount will be zero or less' }));
+          }
+          
+          return of(BudgetActions.updateSpendAmount( { spendId, amount: (-amount), payloadForNextAction: { categoryId: dailyCategoryId, newAmount: dailyBudgetCategory!.amount, newBalance: dailyBudgetCategory!.balance - (-amount) } }));
+        }),
+        tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+      ));
 
 }
