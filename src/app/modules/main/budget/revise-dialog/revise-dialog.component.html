@@ -1,7 +1,7 @@
 <div class="py-3">
   <h1 mat-dialog-title class="!text-3xl !mb-5">{{ 'revise' | translate }}</h1>
   <mat-dialog-content>
-		<p>Enter factual amount to see if there is discrepancy with a budget</p>	
+		<p>{{ 'revise_msg' | translate }}</p>	
     <form [formGroup]="reviseForm" class="pt-2 flex items-start">
       <mat-form-field appearance="outline" class="mr-3 w-full" color="accent">
 				<mat-label>{{ 'amount' | translate }}</mat-label>
@@ -15,7 +15,7 @@
 			</button>
     </form>
 		<div *ngIf="msg" class="mt-3">
-			<p class="text-black">{{ msg }}</p>
+			<p class="text-black">{{ msg | translate:{ value: this.budgetDiff } }}</p>
 		</div>
   </mat-dialog-content>
 	<mat-dialog-actions class="!w-100 !justify-between !px-6">

@@ -1,5 +1,5 @@
 <div class="!mb-5 lg:!mb-12 flex justify-between items-center">
-	<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-0">{{ 'Budget' | translate }}</h1>
+	<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-0">{{ 'budget' | translate }}</h1>
 
 	<mat-form-field appearance="outline" color="accent">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
@@ -31,7 +31,7 @@
 				[cdkDropListDisabled]="dragDisabled">
 		
 				<ng-container matColumnDef="items">
-					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> Items </mat-header-cell>
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> {{ 'category' | translate }} </mat-header-cell>
 					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-9">
 						<mat-form-field class="plain-input w-100" appearance="outline">
 							<input matInput formControlName="title" (blur)="onBlurExpenseTitle(i)">
@@ -40,7 +40,7 @@
 				</ng-container>
 		
 				<ng-container matColumnDef="amount">
-					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Amount </mat-header-cell>
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> {{ 'amount' | translate }} </mat-header-cell>
 					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6">
 						<mat-form-field class="plain-input w-100" appearance="outline">
 							<input matInput formControlName="amount" (blur)="onBlurExpenseAmount(i)">
@@ -50,7 +50,7 @@
 				</ng-container>
 		
 				<ng-container matColumnDef="balance">
-					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> Balance </mat-header-cell>
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 !w-1/6 uppercase"> {{ 'balance' | translate }} </mat-header-cell>
 					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6">
 						<mat-form-field class="plain-input"  appearance="outline">
 							<input matInput formControlName="balance" class="w-100 cursor-default" readonly>
@@ -59,7 +59,7 @@
 				</ng-container>
 		
 				<ng-container matColumnDef="action">
-					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase">Action</mat-header-cell>
+					<mat-header-cell *matHeaderCellDef class="!py-7 !px-6 rounded-tr-md uppercase"> {{ 'action' | translate }} </mat-header-cell>
 					<mat-cell *matCellDef="let element; let i = index" formGroupName="{{ i }}" class="!py-2 !px-6 justify-center">
 						<mat-icon class="cursor-pointer" (mousedown)="dragDisabled = false;">drag_indicator</mat-icon>
 						<mat-icon class="cursor-pointer" (click)="openConfirmDeleteDialog(element.get('id').value, element.get('title').value)">delete</mat-icon>
@@ -79,14 +79,14 @@
 			</div>
 	
 			<div class="table-footer-top h-16 flex items-center font-semibold uppercase text-lg">
-				<div class="px-9">Budget planned:</div>
+				<div class="px-9">{{ 'budget_planned' | translate }}:</div>
 				<div class="px-6">{{ currentBudget.total }} {{ currentBudget.currency }}</div>
 				<div class="px-6"></div>
 				<div class="px-6"></div>
 			</div>
 	
 			<div class="table-footer-bottom rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase text-2xl">
-				<div class="px-9">Daily budget:</div>
+				<div class="px-9">{{ 'daily_budget' | translate }}:</div>
 				<div class="px-6">{{ currentBudget.daily }} {{ currentBudget.currency }}</div>
 				<div class="px-6"></div>
 				<div class="px-6"></div>
@@ -95,29 +95,29 @@
 	</form>
 	</div>
 
-	<ng-template #noBudget>No budget selected. Select or create new budget</ng-template>
+	<ng-template #noBudget>{{ 'no_budget_msg' | translate }}</ng-template>
 
 </div>
 
 <div class="w-full text-right mt-3">
-	<span class="underline cursor-pointer" (click)="openArchiveListDialog()">Archive</span>
+	<span class="underline cursor-pointer" (click)="openArchiveListDialog()">{{ 'archive' | translate }}</span>
 </div>
 
 <mat-menu #menu="matMenu" class="custom-mat-menu">
 	<button mat-menu-item (click)="openEditDialog()">
 		<mat-icon>edit</mat-icon>
-    <span>Edit</span>
+    <span>{{ 'edit' | translate }}</span>
   </button>
 	<button mat-menu-item (click)="copyBudget()">
 		<mat-icon>file_copy</mat-icon>
-		<span>Copy</span>
+		<span>{{ 'copy' | translate }}</span>
 	</button>
 	<button mat-menu-item (click)="openReviseDialog()">
     <mat-icon>check_circle</mat-icon>
-    <span>Revise</span>
+    <span>{{ 'revise' | translate }}</span>
   </button>
   <button mat-menu-item (click)="openArchiveDialog()">
     <mat-icon>delete</mat-icon>
-    <span>Archive</span>
+    <span>{{ 'archive' | translate }}</span>
   </button>
 </mat-menu>

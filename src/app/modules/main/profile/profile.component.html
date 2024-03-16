@@ -1,5 +1,7 @@
-<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-5 lg:!mb-12 ">{{ 'profile' | translate }}</h1>
-
+<div class="flex justify-between items-center mb-5 lg:mb-12">
+	<h1 class="mat-headline-5 !mb-0 !text-3xl lg:!text-4xl">{{ 'profile' | translate }}</h1>
+	<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">language</mat-icon>
+</div>
 <form class="form-wrapper p-6 lg:p-10 w-full rounded-md" [formGroup]="profileForm">
 	<div class="mb-6 flex items-center flex-col lg:flex-row text-center lg:text-left lg:mb-10">
 		<ng-container *ngIf="userPhoto$ | async as userPhoto; else noAvatar">
@@ -35,3 +37,13 @@
 		<button mat-raised-button color="accent" (click)="onSubmit()">{{ 'save' | translate }}</button>
 	</div>
 </form>
+
+<mat-menu #menu="matMenu">
+	<button 
+		mat-menu-item 
+		(click)="changeLang(lang)"
+		*ngFor="let lang of LANGUAGES" 
+		class="uppercase" >
+    {{ lang }}
+  </button>
+</mat-menu>

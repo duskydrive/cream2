@@ -19,7 +19,7 @@ import { updateProfile, updatePassword } from '@angular/fire/auth';
 import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
 import { FirebaseError } from 'firebase/app';
 import { FileService } from 'src/app/core/services/file.service';
-
+import { LANGUAGES } from 'src/app/app.constants';
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -33,6 +33,7 @@ export class ProfileComponent extends Unsub implements OnInit {
   private storage = getStorage();
   private firestore: Firestore = inject(Firestore);
   private uid!: string;
+  protected LANGUAGES = LANGUAGES;
   
   constructor(
     private formBuilder: FormBuilder,
@@ -95,6 +96,10 @@ export class ProfileComponent extends Unsub implements OnInit {
 
       this.store.dispatch(UserActions.uploadUserPhoto({ userId: this.uid, file }));
     }
+  }
+
+  public changeLang(language: string) {
+    this.store.dispatch(UserActions.changeLanguage({ language }))
   }
 
   public onSubmit() {

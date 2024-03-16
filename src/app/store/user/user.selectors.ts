@@ -27,3 +27,8 @@ export const selectUserPhoto = createSelector(
   selectUser,
   user => user ? user.photo : null
 );
+
+export const selectLanguage = createSelector(
+  selectUserState,
+  (state: IUserState) => state.language
+);

@@ -7,7 +7,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as UserActions from 'src/app/store/user/user.actions';
 import * as BudgetActions from 'src/app/store/budget/budget.actions';
-import { IUserData } from '../models/interfaces';
+import { IUserData } from '../interfaces/interfaces';
 
 @Injectable({
   providedIn: 'root'

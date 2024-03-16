@@ -1,7 +1,7 @@
 <div class="py-3">
   <h1 mat-dialog-title class="!text-3xl !mb-5">{{ 'archive_list' | translate }}</h1>
 <mat-dialog-content>
-  <p>Choose budget you would like to restore</p>
+  <p>{{ 'restore_archive_msg' | translate }}</p>
   <form [formGroup]="budgetsForm" class="pt-2">
     <mat-form-field class="w-full" appearance="outline" color="accent">
       <mat-label>{{ 'budget' | translate }}</mat-label>

@@ -9,6 +9,7 @@ export const initialState: IUserState = {
     email: null,
     photo: null,
   },
+  language: 'en',
   loading: false,
   error: null,
 };
@@ -94,5 +95,13 @@ export const userReducer = createReducer(
       ...state.user,
       name,
     },
+  })),
+  on(UserActions.changeLanguageSuccess, (state, { language }) => ({
+    ...state,
+    language,
+  })),
+  on(UserActions.changeLanguageFailure, (state, { error }) => ({
+    ...state,
+    error,
   })),
 )

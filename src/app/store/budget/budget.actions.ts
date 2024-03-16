@@ -1,5 +1,5 @@
 import { createAction, props } from "@ngrx/store";
-import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
+import { IBudgetTitleAndId } from "src/app/core/interfaces/interfaces";
 import { IBudget, IExpense, ISpend } from "src/app/shared/models/budget.interface";
 
 export const loadBudget = createAction(

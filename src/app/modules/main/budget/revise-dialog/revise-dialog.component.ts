@@ -17,7 +17,7 @@ import * as BudgetActions from '../../../../store/budget/budget.actions';
 })
 export class ReviseDialogComponent extends Unsub implements OnInit {
   public reviseForm: FormGroup;
-  private budgetDiff = 0;
+  public budgetDiff = 0;
   public msg = '';
   public isDisabled = true;
   
@@ -56,13 +56,13 @@ export class ReviseDialogComponent extends Unsub implements OnInit {
     this.budgetDiff = +factBalance - budgetBalance;
 
     if (this.budgetDiff > 0) {
-      this.msg = `You have ${this.budgetDiff} USD more then in budget!`;
+      this.msg = `balance_more`;
       this.isDisabled = false;
     } else if (this.budgetDiff < 0) {
-      this.msg = `You have ${this.budgetDiff} USD less then in budget!`;
+      this.msg = `balance_less`;
       this.isDisabled = false;
     } else {
-      this.msg = `Your balance and budget are the same`;
+      this.msg = `balance_same`;
       this.isDisabled = true;
     }
   }

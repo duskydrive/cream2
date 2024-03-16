@@ -1,7 +1,7 @@
 import { createReducer, on } from "@ngrx/store";
 import { IBudget, ISpend } from "src/app/shared/models/budget.interface";
 import * as BudgetActions from "./budget.actions";
-import { IBudgetTitleAndId } from "src/app/core/models/interfaces";
+import { IBudgetTitleAndId } from "src/app/core/interfaces/interfaces";
 
 export interface IBudgetState {
   budget: IBudget | null,

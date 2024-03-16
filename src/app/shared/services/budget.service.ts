@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, combineLatest, concatMap, forkJoin, from, map, of, switchMap, tap} from 'rxjs';
 import { collection, deleteDoc, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, Timestamp, updateDoc, where, writeBatch } from '@angular/fire/firestore';
 import { IBudget, IExpense, ISpend } from '../models/budget.interface';
-import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
+import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 
 @Injectable({
   providedIn: 'root'

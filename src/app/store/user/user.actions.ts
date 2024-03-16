@@ -1,6 +1,6 @@
 import { createAction, props } from "@ngrx/store";
 import { User } from "firebase/auth";
-import { IUserData } from "src/app/core/models/interfaces";
+import { IUserData } from "src/app/core/interfaces/interfaces";
 
 export const loginUser = createAction(
   '[User] Login User',
@@ -75,4 +75,19 @@ export const setUserName = createAction(
 export const setUserPhoto = createAction(
   '[User] Set User Photo',
   props<{ photoUrl: string }>()
+);
+
+export const changeLanguage = createAction(
+  '[User] Change Language',
+  props<{ language: string }>()
+);
+
+export const changeLanguageSuccess = createAction(
+  '[User] Change Language Success',
+  props<{ language: string }>()
+);
+
+export const changeLanguageFailure = createAction(
+  '[User] Change Language Error',
+  props<{ error: any }>()
 );

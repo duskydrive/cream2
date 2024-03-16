@@ -11,7 +11,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
- 
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+
 @NgModule({
   declarations: [
     ProfileComponent,
@@ -26,6 +28,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatButtonModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatIconModule,
+    MatMenuModule,
   ]
 })
 export class ProfileModule { }

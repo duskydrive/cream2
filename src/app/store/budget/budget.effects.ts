@@ -12,10 +12,11 @@ import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interfac
 import { Router } from '@angular/router';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FirebaseError } from '@angular/fire/app';
-import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
+import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 import { Timestamp } from '@angular/fire/firestore';
+import { LocalStorageService } from 'src/app/core/services/storage.service';
 
 @Injectable()
 export class BudgetEffects {
@@ -26,6 +27,7 @@ export class BudgetEffects {
     private store: Store,
     private router: Router,
     private snackbarService: SnackbarService,
+    private localStorageService: LocalStorageService,
   ) {}
 
   createBudget$ = createEffect(() => 
@@ -35,6 +37,9 @@ export class BudgetEffects {
       switchMap(({ userId, budgetData, expenses}) => 
         this.budgetService.createBudget(userId, budgetData, expenses).pipe(
           map((budget: IBudget) => {
+            this.localStorageService.setItem('currentBudgetId', budget.id);
+            this.localStorageService.removeItem('currentBudgetDate');
+
             this.snackbarService.showSuccess('budget_create_success');
             this.router.navigate(['/budget']);
             return BudgetActions.createBudgetSuccess( { budget });
@@ -98,15 +103,13 @@ export class BudgetEffects {
         }
 
         if ('isArchived' in budgetData && budgetData['isArchived'] === true) {
+          this.localStorageService.removeItem('currentBudgetId');
           actionsToDispatch.push(of(BudgetActions.resetBudget()));
         }
 
         if ('isArchived' in budgetData && budgetData['isArchived'] === false) {
           actionsToDispatch.push(of(BudgetActions.loadBudgetsTitlesAndIds({ userId: userId! })));
         }
-
-        console.log(333)
-        console.log('budgetData', budgetData)
 
         return from(actionsToDispatch).pipe(concatAll());
       }),
@@ -126,6 +129,18 @@ export class BudgetEffects {
         return of(BudgetActions.loadBudgetsTitlesAndIds({ userId }));
       }),
       catchError((error) => of(BudgetActions.loadBudgetsTitlesAndIdsFailure({ error })))
+    )
+  );
+
+  triggerLoadBudgetFromLocalStorage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.setUser),
+      switchMap(( { user } ) => {
+        if (user.userId && this.localStorageService.hasKey('currentBudgetId')) {
+          return of(BudgetActions.loadBudget({ userId: user.userId, budgetId: this.localStorageService.getItem('currentBudgetId')! }))
+        }
+        return EMPTY;
+      }),
     )
   );
 
@@ -159,6 +174,10 @@ export class BudgetEffects {
       switchMap(({ userId, budgetId }) => {
         return this.budgetService.getBudget(userId, budgetId).pipe(
           map((budget: IBudget) => {  
+            const storedBudgetId = this.localStorageService.getItem('currentBudgetId');
+            if (storedBudgetId && storedBudgetId !== budgetId) {
+              this.localStorageService.removeItem('currentBudgetDate');
+            }
             return BudgetActions.loadBudgetSuccess( { budget });
           }),
           catchError((error: FirebaseError) => {
@@ -175,6 +194,8 @@ export class BudgetEffects {
     this.actions$.pipe(
       ofType(BudgetActions.loadBudgetSuccess),
       switchMap(({ budget }) => {
+        this.localStorageService.setItem('currentBudgetId', budget.id);
+
         const dailyExpense = budget.expenses.find((expense: IExpense) => expense.title === 'Daily');
 
         if (dailyExpense === undefined) {
@@ -194,9 +215,10 @@ export class BudgetEffects {
         this.store.select(UserSelectors.selectUserId),
         this.store.select(BudgetSelectors.selectCurrentBudgetId),
       ),
-      switchMap(([date, userId, budgetId]) => {
-        return this.budgetService.getSpendByDate(userId!, budgetId!, date.date).pipe(
+      switchMap(([{date}, userId, budgetId]) => {
+        return this.budgetService.getSpendByDate(userId!, budgetId!, date).pipe(
           map((spend: ISpend[]) => {  
+            this.localStorageService.setItem('currentBudgetDate', date.toISOString());
             return BudgetActions.loadSpendByDateSuccess( { spend });
           }),
           catchError((error: FirebaseError) => {
@@ -424,7 +446,6 @@ export class BudgetEffects {
             .pipe(
               map(() => update),
               catchError(error => {
-                console.error(`Update failed for expenseId ${update.expenseId}`, error);
                 return of({ error });
               })
             )

@@ -10,7 +10,7 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
 import { Unsub } from 'src/app/core/classes/unsub';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatTable } from '@angular/material/table';
-import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
+import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { EMPTY, Observable, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap} from 'rxjs';
 import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
@@ -25,6 +25,7 @@ import { ReviseDialogComponent } from './revise-dialog/revise-dialog.component';
 import { ArchiveDialogComponent } from './archive-dialog/archive-dialog.component';
 import { ArchiveListDialogComponent } from './archive-list-dialog/archive-list-dialog.component';
 import { BudgetService } from 'src/app/shared/services/budget.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-budget',
@@ -46,6 +47,7 @@ export class BudgetComponent extends Unsub implements OnInit {
   constructor(
     public formHelpersService: FormHelpersService,
     public budgetCalculatorService: BudgetCalculatorService,
+    public translateService: TranslateService,
     public budgetService: BudgetService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
@@ -127,7 +129,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     const formattedEndDate = endDate.format('MM/DD/YYYY');
     const daysDiff = this.budgetCalculatorService.countDaysDiff(dateStart, dateEnd);
   
-    return `${formattedStartDate} - ${formattedEndDate} (${daysDiff} days)`;
+    return `${formattedStartDate} - ${formattedEndDate} (${daysDiff} ` + this.translateService.instant('days') + `)`;
   }
   
   public onBlurExpenseTitle(index: number) {

@@ -9,7 +9,7 @@ import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { MatTable } from '@angular/material/table';
-import { IBudgetTitleAndId } from 'src/app/core/models/interfaces';
+import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { BehaviorSubject, EMPTY, Observable, Subject, combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
 import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
@@ -19,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 import { Router } from '@angular/router';
 import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
+import { LocalStorageService } from 'src/app/core/services/storage.service';
 
 @Component({
   selector: 'app-spend',
@@ -37,7 +38,7 @@ export class SpendComponent extends Unsub implements OnInit {
   private dailyCategoryId$: Observable<string | null> = this.store.select(BudgetSelectors.selectDailyCategoryId);
   public todaysSpend$: BehaviorSubject<number>= new BehaviorSubject(0); 
   public expenses: IExpense[] = [];
-  public dayOfWeek$ = new Subject();
+  public dayOfWeek$: BehaviorSubject<string> = new BehaviorSubject<string>('');
   public dataSource: any[] = [];
   public allSpend: ISpend[] = [];
   public minCalendarDate: Date | null = null;
@@ -56,6 +57,7 @@ export class SpendComponent extends Unsub implements OnInit {
   constructor(
     public formHelpersService: FormHelpersService,
     public budgetCalculatorService: BudgetCalculatorService,
+    public localStorageService: LocalStorageService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
     private router: Router,
@@ -95,7 +97,7 @@ export class SpendComponent extends Unsub implements OnInit {
         if (date) {
           this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
           this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
-          this.dayOfWeek$.next(moment(date).format('dddd'))
+          this.dayOfWeek$.next(moment(date).format('dddd').toLocaleLowerCase());
         }
       });
     });
@@ -110,8 +112,13 @@ export class SpendComponent extends Unsub implements OnInit {
       takeUntil(this.destroy$),
     ).subscribe(([prevBudget, currBudget]: [IBudget | null, IBudget | null]) => {
       if (prevBudget?.id !== currBudget?.id && currBudget) {
-        console.log(11111)
-        this.currentDate!.setValue(currBudget.dateStart.toDate());
+        this.currentDate!.setValue(null);
+        if (this.localStorageService.hasKey('currentBudgetDate')) {
+          this.currentDate!.setValue( new Date(this.localStorageService.getItem('currentBudgetDate')!) );
+        } else {
+          this.currentDate!.setValue(currBudget.dateStart.toDate());
+        }
+        
         this.minCalendarDate = currBudget.dateStart.toDate();
         this.maxCalendarDate = currBudget.dateEnd.toDate();
       }
@@ -249,7 +256,6 @@ export class SpendComponent extends Unsub implements OnInit {
   }
 
   public changeDateByBtn(direction: 'next' | 'prev') {
-    console.log(777777)
     const currentDate = moment(this.currentDate.value).startOf('day');
     const modifiedDate = direction === 'next' ? currentDate.clone().add(1, 'days') : currentDate.clone().subtract(1, 'days');
   

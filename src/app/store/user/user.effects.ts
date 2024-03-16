@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, first, from, map, of, switchMap, take, tap, withLatestFrom } from 'rxjs';
 import * as UserActions from './user.actions';
 import * as SpinnerActions from '../spinner/spinner.actions';
 import { Store } from '@ngrx/store';
 import { Router } from '@angular/router';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
 import { AuthService } from 'src/app/core/services/auth.service';
-import { UserCredential } from 'firebase/auth';
+import { UserCredential, updateProfile } from 'firebase/auth';
 import { FirebaseError } from '@angular/fire/app';
 import { FileService } from 'src/app/core/services/file.service';
 import { getDownloadURL } from '@angular/fire/storage';
 import { UserService } from 'src/app/core/services/user.service';
+import { TranslateService } from '@ngx-translate/core';
+import { LocalStorageService } from 'src/app/core/services/storage.service';
+import * as UserSelectors from '../user/user.selectors';
 
 @Injectable()
 export class UserEffects {
@@ -21,6 +24,7 @@ export class UserEffects {
     private authService: AuthService,
     private userService: UserService,
     private fileService: FileService,
+    private localStorageService: LocalStorageService,
     private router: Router,
     private snackbarService: SnackbarService,
   ) {}
@@ -83,18 +87,31 @@ export class UserEffects {
     this.actions$.pipe(
       ofType(UserActions.uploadUserPhoto),
       tap(() => this.store.dispatch(SpinnerActions.startRequest())),
-      switchMap(({ userId, file }) => this.fileService.uploadImage(userId, file)),
-      switchMap((snapshot) => getDownloadURL(snapshot.ref)),
-      map((photoUrl: string) => {
-        this.snackbarService.showSuccess('photo_uploaded');
-        return UserActions.uploadUserPhotoSuccess({ photoUrl });
-      }),
-      catchError((error: FirebaseError) => {
-        this.snackbarService.showError(error.code || 'photo_upload_error');
-        return of(UserActions.uploadUserPhotoFailure( { error: error }));
-      }),
-      tap(() => this.store.dispatch(SpinnerActions.endRequest())) 
-    ),
+      switchMap(({ file }) => 
+        this.authService.getAuthState().pipe(
+          first(),
+          switchMap((user) => {
+            if (!user) throw new Error('User not logged in');
+            return this.fileService.uploadImage(user.uid, file).pipe(
+              switchMap((photoUrl: string) => {
+                return from(updateProfile(user, { photoURL: photoUrl })).pipe(
+                  map(() => photoUrl)
+                );
+              })
+            );
+          }),
+          map((photoUrl: string) => {
+            this.snackbarService.showSuccess('Photo uploaded successfully');
+            return UserActions.uploadUserPhotoSuccess({ photoUrl });
+          }),
+          catchError((error: any) => {
+            this.snackbarService.showError(error.message || 'Photo upload error');
+            return of(UserActions.uploadUserPhotoFailure({ error }));
+          }),
+          tap(() => this.store.dispatch(SpinnerActions.endRequest()))
+        )
+      )
+    )
   );
 
   updateUserCreds$ = createEffect(() => 
@@ -121,5 +138,36 @@ export class UserEffects {
       }),
       tap(() => this.store.dispatch(SpinnerActions.endRequest())) 
     ),
+  );
+
+  changeLanguageAction$ = createEffect(() => 
+    this.actions$.pipe(
+      ofType(UserActions.changeLanguage),
+      tap(() => this.store.dispatch(SpinnerActions.startRequest())),
+      switchMap((language) => {
+        this.localStorageService.setItem('userLanguage', language.language);
+        return of(UserActions.changeLanguageSuccess({ language: language.language }));
+      }),
+      tap(() => this.store.dispatch(SpinnerActions.endRequest())),
+    )
+  );
+
+  setLanguageFromLocalStorage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.setUser),
+      withLatestFrom(this.store.select(UserSelectors.selectLanguage)),
+      switchMap(( [{user}, language] ) => {
+        if (user.userId && this.localStorageService.hasKey('userLanguage')) {
+          const localStorageLanguage = this.localStorageService.getItem('userLanguage')!;
+          if (language === localStorageLanguage) {
+            return EMPTY;
+          }
+          return of(UserActions.changeLanguage({ language: localStorageLanguage }))
+        } else {
+          this.localStorageService.setItem('userLanguage', 'en');
+        }
+        return EMPTY;
+      }),
+    )
   );
 }

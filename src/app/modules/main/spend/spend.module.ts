@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from 'src/app/shared/shared.module';
 
 import { SpendComponent } from './spend.component';
+import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
 import { SpendRoutingModule } from './spend-routing.module';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
-import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
     MatTableModule,
     MatMenuModule,
     MatDialogModule,
+    MatAutocompleteModule,
   ]
 })
 export class SpendModule { }

@@ -203,7 +203,6 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
       filter(([userId, categorisedExpenses]) => !!userId && categorisedExpenses !== undefined),
       take(1),
       catchError(error => {
-        console.error(error);
         return EMPTY;
       })
     ).subscribe(([userId, categorisedExpenses]) => {
