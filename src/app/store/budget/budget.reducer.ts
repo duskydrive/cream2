@@ -1,5 +1,5 @@
 import { createReducer, on } from "@ngrx/store";
-import { IBudget, ISpend } from "src/app/shared/models/budget.interface";
+import { IBudget, ISpend } from "src/app/shared/interfaces/budget.interface";
 import * as BudgetActions from "./budget.actions";
 import { IBudgetTitleAndId } from "src/app/core/interfaces/interfaces";
 
@@ -125,17 +125,14 @@ export const budgetReducer = createReducer(
     loading: true,
   })),
   on(BudgetActions.updateExpenseTitleSuccess, (state, { expenseId, newTitle }) => {
-    // Guard clause if budget or expenses are null
     if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
   
     const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
     
     if (index !== -1) {
-      // Create a deep copy of the expenses array and update the title
       const updatedExpenses = state.budget.expenses.map((expense, idx) => 
         idx === index ? { ...expense, title: newTitle } : expense);
   
-      // Update the budget part of the state with new expenses array
       return {
         ...state,
         budget: {
@@ -145,7 +142,6 @@ export const budgetReducer = createReducer(
         loading: false,
       };
     } else {
-      // Return state unchanged if the expense is not found
       return { ...state, loading: false };
     }
   }),  
@@ -164,11 +160,9 @@ export const budgetReducer = createReducer(
     const index = state.budget.expenses.findIndex((e) => e.id === updatedExpense.expenseId);
 
     if (index !== -1) {
-      // Create a deep copy of the expenses array and update the title
       const updatedExpenses = state.budget.expenses.map((expense, idx) => 
       idx === index ? { ...expense, amount: updatedExpense.newAmount, balance: updatedExpense.newBalance } : expense);
         
-      // Update the budget part of the state with new expenses array
       return {
         ...state,
         budget: {
@@ -179,7 +173,6 @@ export const budgetReducer = createReducer(
       };
     
     } else {
-      // Return state unchanged if the expense is not found
       return { ...state, loading: false };
     }
   }),  
@@ -188,21 +181,15 @@ export const budgetReducer = createReducer(
     loading: false,
     error,
   })),
-  // on(BudgetActions.updateExpenseBalance, state => ({
-  //   ...state,
-  //   loading: true,
-  // })), 
   on(BudgetActions.updateExpenseBalanceSuccess, (state, { expenseId, newBalance }) => {
     if (!state.budget || !state.budget.expenses) return { ...state, loading: false };
   
     const index = state.budget.expenses.findIndex((e) => e.id === expenseId);
 
     if (index !== -1) {
-      // Create a deep copy of the expenses array and update the title
       const updatedExpenses = state.budget.expenses.map((expense, idx) => 
       idx === index ? { ...expense, balance: newBalance } : expense);
         
-      // Update the budget part of the state with new expenses array
       return {
         ...state,
         budget: {
@@ -213,7 +200,6 @@ export const budgetReducer = createReducer(
       };
     
     } else {
-      // Return state unchanged if the expense is not found
       return { ...state, loading: false };
     }
   }),  
@@ -231,13 +217,11 @@ export const budgetReducer = createReducer(
       return { ...state, loading: false };
     }
   
-    // Map over the existing expenses to update their balances based on the action's updates array
     const updatedExpenses = state.budget.expenses.map(expense => {
       const update = updates.find(u => u.expenseId === expense.id);
       return update ? { ...expense, balance: update.newBalance } : expense;
     });
   
-    // Update the budget part of the state with the new expenses array
     return {
       ...state,
       budget: {
@@ -258,11 +242,9 @@ export const budgetReducer = createReducer(
     const index = state.budget.expenses.findIndex((e) => e.id === updatedExpense.expenseId);
 
     if (index !== -1) {
-      // Create a deep copy of the expenses array and update the title
       const updatedExpenses = state.budget.expenses.map((expense, idx) => 
       idx === index ? { ...expense, amount: updatedExpense.newAmount, balance: updatedExpense.newBalance } : expense);
         
-      // Update the budget part of the state with new expenses array
       return {
         ...state,
         budget: {
@@ -273,7 +255,6 @@ export const budgetReducer = createReducer(
       };
     
     } else {
-      // Return state unchanged if the expense is not found
       return { ...state, loading: false };
     }
   }),  

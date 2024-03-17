@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ArchiveDialogComponent } from './archive-list-dialog.component';
+import { ArchiveListDialogComponent } from './archive-list-dialog.component';
 
 describe('ArchiveDialogComponent', () => {
-  let component: ArchiveDialogComponent;
-  let fixture: ComponentFixture<ArchiveDialogComponent>;
+  let component: ArchiveListDialogComponent;
+  let fixture: ComponentFixture<ArchiveListDialogComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ArchiveDialogComponent]
+      declarations: [ArchiveListDialogComponent]
     });
-    fixture = TestBed.createComponent(ArchiveDialogComponent);
+    fixture = TestBed.createComponent(ArchiveListDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

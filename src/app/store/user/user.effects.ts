@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { EMPTY, Observable, catchError, first, from, map, of, switchMap, take, tap, withLatestFrom } from 'rxjs';
+import { EMPTY, Observable, catchError, first, from, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
 import * as UserActions from './user.actions';
 import * as SpinnerActions from '../spinner/spinner.actions';
+import * as UserSelectors from '../user/user.selectors';
 import { Store } from '@ngrx/store';
 import { Router } from '@angular/router';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
@@ -10,11 +11,8 @@ import { AuthService } from 'src/app/core/services/auth.service';
 import { UserCredential, updateProfile } from 'firebase/auth';
 import { FirebaseError } from '@angular/fire/app';
 import { FileService } from 'src/app/core/services/file.service';
-import { getDownloadURL } from '@angular/fire/storage';
 import { UserService } from 'src/app/core/services/user.service';
-import { TranslateService } from '@ngx-translate/core';
 import { LocalStorageService } from 'src/app/core/services/storage.service';
-import * as UserSelectors from '../user/user.selectors';
 
 @Injectable()
 export class UserEffects {
@@ -91,7 +89,7 @@ export class UserEffects {
         this.authService.getAuthState().pipe(
           first(),
           switchMap((user) => {
-            if (!user) throw new Error('User not logged in');
+            if (!user) throw new Error('user_not_logged');
             return this.fileService.uploadImage(user.uid, file).pipe(
               switchMap((photoUrl: string) => {
                 return from(updateProfile(user, { photoURL: photoUrl })).pipe(
@@ -101,11 +99,11 @@ export class UserEffects {
             );
           }),
           map((photoUrl: string) => {
-            this.snackbarService.showSuccess('Photo uploaded successfully');
+            this.snackbarService.showSuccess('photo_upload_success');
             return UserActions.uploadUserPhotoSuccess({ photoUrl });
           }),
           catchError((error: any) => {
-            this.snackbarService.showError(error.message || 'Photo upload error');
+            this.snackbarService.showError(error.message || 'photo_upload_error');
             return of(UserActions.uploadUserPhotoFailure({ error }));
           }),
           tap(() => this.store.dispatch(SpinnerActions.endRequest()))

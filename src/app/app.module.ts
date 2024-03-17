@@ -48,7 +48,6 @@ export function createTranslateLoader(http: HttpClient) {
     MatProgressSpinnerModule,
     HttpClientModule,    
     LoginModule,
-    // Maybe should be in shared or core?
     TranslateModule.forRoot({
       loader: {
           provide: TranslateLoader,
@@ -63,14 +62,9 @@ export function createTranslateLoader(http: HttpClient) {
     AppEffectsModule,
     // TODO it should be: !environment.production ? StoreDevtoolsModule.instrument() : []
     StoreDevtoolsModule.instrument({
-      // maxAge: 25, // Retains last 25 states
-      // autoPause: true, // Pauses recording actions and state changes when the extension window is not open
       trace: false, // Enable tracing
-      features: {
-        
-      }
+      features: {}
     }),
-    
   ],
   providers: [
     { 
@@ -99,7 +93,6 @@ export function createTranslateLoader(http: HttpClient) {
 })
 export class AppModule { 
   constructor(
-    // TODO maybe should put it in core module
     translate: TranslateService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,

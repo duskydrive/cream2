@@ -8,7 +8,6 @@ import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as UserActions from 'src/app/store/user/user.actions';
 
-
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',

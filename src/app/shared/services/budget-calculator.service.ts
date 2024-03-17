@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
 import * as moment from 'moment';
-import { IBudget, IExpense } from '../models/budget.interface';
+import { IBudget, IExpense } from '../interfaces/budget.interface';
 
 @Injectable({
   providedIn: 'root'

@@ -84,5 +84,19 @@
   "todays_budget": "Today's budget",
   "todays_left": "Today’s left",
   "delete_spend_msg": "Are you sure you want to delete spend",
-  "today_daily": "Today’s daily spend"
+  "today_daily": "Today’s daily spend",
+  "spend_date_range_error": "You have spend out of date range. Delete it first",
+  "daily_negative_error": "Daily is negative: {{ value }}",
+  "no_expenses_error": "No expenses",
+  "invalid_daily_error": "Invalid daily amount",
+  "balance_not_enough_error": "Balance is not enough",
+  "date_scope_error": "Date is out of scope",
+  "some_error": "Something went wrong...",
+  "budget_update_error": "Error while updating budget...",
+  "no_user_id": "No user id",
+  "no_user_found": "User not found",
+  "no_daily": "No daily",
+  "fix_error": "Cant fix, amount will be zero or less",
+  "photo_upload_success": "Photo uploaded successfully",
+  "user_not_logged": "User not logged in"
 }

@@ -84,5 +84,19 @@
   "todays_budget": "Сьогоднішній бюджет",
   "todays_left": "Сьогодні залишилося",
   "delete_spend_msg": "Ви впевнені, що хочете видалити витрати",
-  "today_daily": "Сьогоднішні денні витрати"
+  "today_daily": "Сьогоднішні денні витрати",
+  "spend_date_range_error": "У вас є трати в дати які ви намагаєтесь видалити. Спочатку видалите витрати",
+  "daily_negative_error": "Денні трати негативні!",
+  "no_expenses_error": "Немає витрат",
+  "invalid_daily_error": "Недопустима денна сума",
+  "balance_not_enough_error": "Недостатньо балансу",
+  "date_scope_error": "Дата недоступна",
+  "some_error": "Щось пійшло не так...",
+  "budget_update_error": "Помилка оновлення бюджету...",
+  "no_user_id": "Немає айді юзера",
+  "no_user_found": "Користувача не знайдено",
+  "no_daily": "Немає денних витрат",
+  "fix_error": "Неможна виправити, сума буде нуль або меньше",
+  "photo_upload_success": "Photo uploaded successfully",
+  "user_not_logged": "Користувач не увійшов"
 }

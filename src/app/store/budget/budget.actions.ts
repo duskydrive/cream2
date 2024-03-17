@@ -1,6 +1,6 @@
 import { createAction, props } from "@ngrx/store";
 import { IBudgetTitleAndId } from "src/app/core/interfaces/interfaces";
-import { IBudget, IExpense, ISpend } from "src/app/shared/models/budget.interface";
+import { IBudget, IExpense, ISpend } from "src/app/shared/interfaces/budget.interface";
 
 export const loadBudget = createAction(
   '[Budget] Load Budget',
@@ -128,11 +128,6 @@ export const updateExpenseAmountFailure = createAction(
   '[Budget] Update Expense Amount Failure',
   props<{ error: any }>()
 );
-
-// export const updateExpenseBalance = createAction(
-//   '[Budget] Update Expense Balance',
-//   props<{ expenseId: string, newBalance: number }>()
-// );
 
 export const updateExpenseBalanceSuccess = createAction(
   '[Budget] Update Expense Balance Success',

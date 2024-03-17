@@ -1,8 +1,8 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Unsub } from 'src/app/core/classes/unsub';
-import { IBudget, ISpend } from 'src/app/shared/models/budget.interface';
+import { IBudget, ISpend } from 'src/app/shared/interfaces/budget.interface';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { CURRENCY_LIST } from '../budget.constants';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
@@ -15,11 +15,13 @@ import { combineLatest, of, switchMap, takeUntil } from 'rxjs';
 import * as BudgetActions from '../../../../store/budget/budget.actions';
 import * as UserSelectors from '../../../../store/user/user.selectors';
 import * as BudgetSelectors from '../../../../store/budget/budget.selectors';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-edit-dialog',
   templateUrl: './edit-dialog.component.html',
   styleUrls: ['./edit-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditDialogComponent extends Unsub implements OnInit {
   public editForm: FormGroup;
@@ -29,6 +31,7 @@ export class EditDialogComponent extends Unsub implements OnInit {
     public formHelpersService: FormHelpersService,
     public budgetCalculatorService: BudgetCalculatorService,
     public budgetService: BudgetService,
+    public translateService: TranslateService,
     private formBuilder: FormBuilder,
     private matDialogRef: MatDialogRef<EditDialogComponent>,
     private snackbarService: SnackbarService,
@@ -74,12 +77,12 @@ export class EditDialogComponent extends Unsub implements OnInit {
       takeUntil(this.destroy$),
     ).subscribe((spendOutOfRange: ISpend[]) => {
       if (spendOutOfRange.length) {
-        this.snackbarService.showError(`you have spend out of date range`);  
+        this.snackbarService.showError(`spend_date_range_error`);  
         return;
       }
       
       if (isTotalValid <= 0) {
-        this.snackbarService.showError(`daily is negative: ${isTotalValid}`);  
+        this.snackbarService.showError(this.translateService.instant('daily_negative_error', { value: isTotalValid }));  
       }
 
       this.store.dispatch(BudgetActions.updateBudget({ 

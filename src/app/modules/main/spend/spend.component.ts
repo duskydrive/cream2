@@ -11,7 +11,7 @@ import { Unsub } from 'src/app/core/classes/unsub';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { BehaviorSubject, EMPTY, Observable, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
-import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
+import { IBudget, IExpense, ISpend } from 'src/app/shared/interfaces/budget.interface';
 import * as moment from 'moment';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
@@ -215,7 +215,7 @@ export class SpendComponent extends Unsub implements OnInit {
 
     if (balance + oldAmount - newAmount < 0) {
       group.get('amount')!.setValue(oldAmount);
-      this.snackbarService.showError('balance is not enough');
+      this.snackbarService.showError('balance_not_enough_error');
       return;
     } 
 
@@ -230,7 +230,7 @@ export class SpendComponent extends Unsub implements OnInit {
           }
         } else {          
           group.get('amount')!.setValue(oldAmount);
-          this.snackbarService.showError('daily is negative');
+          this.snackbarService.showError('daily_negative_error');
         }
       }),
       take(1),
@@ -248,7 +248,7 @@ export class SpendComponent extends Unsub implements OnInit {
     if (this.isDateWithinScope(modifiedDate)) {
       this.currentDate.setValue(modifiedDate.toDate());
     } else {
-      this.snackbarService.showError('Date is out of scope.');
+      this.snackbarService.showError('date_scope_error');
     }
   }
   
@@ -294,7 +294,7 @@ export class SpendComponent extends Unsub implements OnInit {
           return budget.expenses; 
         } else {
           group.get('categoryId')!.setValue(oldCategory);
-          this.snackbarService.showError('something went wrong');
+          this.snackbarService.showError('some_error');
           return EMPTY;
         }
       }),
@@ -307,7 +307,7 @@ export class SpendComponent extends Unsub implements OnInit {
         const balance = newExpenseCategory.balance;
         if (balance - amount < 0) {
           group.get('categoryId')!.setValue(oldCategory);
-          this.snackbarService.showError('not enough balance');
+          this.snackbarService.showError('balance_not_enough_error');
         } else {
           const updates = [
             { expenseId: oldCategory, newBalance: oldExpenseCategory.balance + amount },
@@ -325,7 +325,7 @@ export class SpendComponent extends Unsub implements OnInit {
         }
       } else {
         group.get('categoryId')!.setValue(oldCategory);
-        this.snackbarService.showError('something went wrong');
+        this.snackbarService.showError('some_error');
       }
     });
   }

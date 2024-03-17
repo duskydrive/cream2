@@ -1,5 +1,4 @@
 import { createAction, props } from "@ngrx/store";
-import { User } from "firebase/auth";
 import { IUserData } from "src/app/core/interfaces/interfaces";
 
 export const loginUser = createAction(

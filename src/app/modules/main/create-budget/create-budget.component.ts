@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, combineLatestWith, filter, map, switchMap, take, takeUntil, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, combineLatestWith, filter, map, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { Timestamp } from 'firebase/firestore';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { Store } from '@ngrx/store';
@@ -14,7 +14,7 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
 import { Unsub } from 'src/app/core/classes/unsub';
 import { CURRENCY_LIST } from './create-budget.constants';
 import { prepareExpenses } from 'src/app/app.helpers';
-import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
+import { IBudget, IExpense } from 'src/app/shared/interfaces/budget.interface';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 
 @Component({
@@ -192,10 +192,10 @@ export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {
       switchMap((value: any) => {
         if (value === 0) {
           this.snackbarService.showError('add_expenses');
-          return throwError(() => new Error('No expenses'));
+          return throwError(() => new Error('no_expenses_error'));
         } else if (currentDaily < 1) {
           this.snackbarService.showError('daily_error');
-          return throwError(() => new Error('Invalid daily amount'));
+          return throwError(() => new Error('invalid_daily_error'));
         }
         return this.store.select(UserSelectors.selectUserId).pipe(
           combineLatestWith(this.categorisedExpenses$)

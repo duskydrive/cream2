@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { Unsub } from 'src/app/core/classes/unsub';
@@ -11,6 +11,7 @@ import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/fo
   selector: 'app-archive-list-dialog',
   templateUrl: './archive-list-dialog.component.html',
   styleUrls: ['./archive-list-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArchiveListDialogComponent extends Unsub implements OnInit {
   budgetsForm: FormGroup;

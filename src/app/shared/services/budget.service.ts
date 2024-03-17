@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, combineLatest, concatMap, forkJoin, from, map, of, switchMap, tap} from 'rxjs';
+import { Observable, catchError, combineLatest, concatMap, forkJoin, from, map, of, switchMap} from 'rxjs';
 import { collection, deleteDoc, doc, DocumentReference, Firestore, getDoc, getDocs, orderBy, query, setDoc, Timestamp, updateDoc, where, writeBatch } from '@angular/fire/firestore';
-import { IBudget, IExpense, ISpend } from '../models/budget.interface';
+import { IBudget, IExpense, ISpend } from '../interfaces/budget.interface';
 import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 
 @Injectable({
@@ -187,11 +187,9 @@ export class BudgetService {
     const startDate = new Date(date.setHours(0, 0, 0, 0));
     const endDate = new Date(date.setHours(23, 59, 59, 999));
   
-    // Convert dates to Timestamp
     const startTimestamp = Timestamp.fromDate(startDate);
     const endTimestamp = Timestamp.fromDate(endDate);
   
-    // Query documents within the date range and order by 'date'
     const q = query(spendCollectionRef, 
                     where('date', '>=', startTimestamp), 
                     where('date', '<=', endTimestamp), 
@@ -208,7 +206,7 @@ export class BudgetService {
         });
       }),
       catchError(error => {
-        throw 'Error fetching spend collection by date: ' + error;
+        throw 'some_error' + error;
       })
     );
   }
@@ -228,7 +226,7 @@ export class BudgetService {
         return totalAmount; // Return the total sum of amounts
       }),
       catchError(error => {
-        throw 'Error fetching previous spend collection: ' + error;
+        throw 'some_error' + error;
       })
     );
   }

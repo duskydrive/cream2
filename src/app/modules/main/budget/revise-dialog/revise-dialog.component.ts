@@ -1,8 +1,8 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Unsub } from 'src/app/core/classes/unsub';
-import { IExpense } from 'src/app/shared/models/budget.interface';
+import { IExpense } from 'src/app/shared/interfaces/budget.interface';
 import { FormHelpersService } from 'src/app/shared/services/form-helpers.service';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 import { Store } from '@ngrx/store';
@@ -14,6 +14,7 @@ import * as BudgetActions from '../../../../store/budget/budget.actions';
   selector: 'app-revise-dialog',
   templateUrl: './revise-dialog.component.html',
   styleUrls: ['./revise-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviseDialogComponent extends Unsub implements OnInit {
   public reviseForm: FormGroup;

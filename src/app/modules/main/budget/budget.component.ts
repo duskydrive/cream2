@@ -12,7 +12,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { EMPTY, Observable, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap} from 'rxjs';
-import { IBudget, IExpense } from 'src/app/shared/models/budget.interface';
+import { IBudget, IExpense } from 'src/app/shared/interfaces/budget.interface';
 import * as moment from 'moment';
 import { Timestamp } from '@angular/fire/firestore';
 import { isEqual } from 'lodash';

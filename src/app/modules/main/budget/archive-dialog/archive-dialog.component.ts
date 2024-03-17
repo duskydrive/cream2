@@ -1,15 +1,15 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../../store/budget/budget.actions';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-archive-dialog',
   templateUrl: './archive-dialog.component.html',
   styleUrls: ['./archive-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArchiveDialogComponent extends Unsub implements OnInit {
   constructor(
