@@ -282,6 +282,9 @@ export class SpendComponent extends Unsub implements OnInit {
     const newCategory = group.get('categoryId')!.value;
     const oldCategory = group.get('originalCategory')!.value;
     const amount = group.get('amount')!.value;
+
+    console.log('newCategory', newCategory)
+    console.log('oldCategory', oldCategory)
   
     if (newCategory === oldCategory) {
       return;
@@ -300,8 +303,8 @@ export class SpendComponent extends Unsub implements OnInit {
       }),
       takeUntil(this.destroy$),
     ).subscribe((expenses: any) => {
-      const newExpenseCategory = expenses.find((expense: IExpense) => expense.id === newCategory);
-      const oldExpenseCategory = expenses.find((expense: IExpense) => expense.id === oldCategory);
+      const newExpenseCategory = expenses.find((expense: any) => expense.id === newCategory);
+      const oldExpenseCategory = expenses.find((expense: any) => expense.id === oldCategory);
 
       if (newExpenseCategory) {
         const balance = newExpenseCategory.balance;
