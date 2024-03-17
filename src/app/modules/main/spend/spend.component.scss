@@ -9,7 +9,6 @@
 
 .heading-column {
   min-height: 60px;
-  border-right: 1px solid #e1e0e5;
   &:last-child {
     border-right: none;
   }
@@ -17,6 +16,12 @@
     width: 27px;
     height: 27px;
     font-size: 27px;
+  }
+}
+
+@media (min-width: 640px) {
+  .heading-column {
+    border-right: 1px solid #e1e0e5;
   }
 }
 
@@ -121,4 +126,8 @@
 
 ::ng-deep .custom-mat-menu {
   width: 150px;
+}
+
+.m-w-700 {
+  min-width: 700px;
 }

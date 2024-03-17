@@ -52,7 +52,7 @@ export class EditDialogComponent extends Unsub implements OnInit {
     return this.editForm.get(name) as AbstractControl;
   }
 
-  onSubmit() {
+  public onSubmit() {
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
       return;

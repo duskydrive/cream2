@@ -43,7 +43,7 @@ export class ReviseDialogComponent extends Unsub implements OnInit {
     return this.reviseForm.get(name) as AbstractControl;
   }
 
-  compareBalances(factBalance: string) {
+  public compareBalances(factBalance: string) {
     if (this.reviseForm.invalid) {
       this.reviseForm.markAllAsTouched();
       return;
@@ -67,7 +67,7 @@ export class ReviseDialogComponent extends Unsub implements OnInit {
     }
   }
 
-  fix() {
+  public fix() {
     if (this.budgetDiff !== 0) {
       this.store.dispatch(BudgetActions.addFix({ amount: this.budgetDiff }));
       this.matDialogRef.close(true);

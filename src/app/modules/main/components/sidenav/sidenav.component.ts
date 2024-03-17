@@ -13,6 +13,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as UserSelectors from 'src/app/store/user/user.selectors';
 import * as SpinnerActions from 'src/app/store/spinner/spinner.actions';
+import { LocalStorageService } from 'src/app/core/services/storage.service';
 
 @Component({
   selector: 'app-sidenav',
@@ -32,6 +33,7 @@ export class SidenavComponent extends Unsub implements OnInit, AfterViewInit {
     private breakpointObserver: BreakpointObserver,
     private cdr: ChangeDetectorRef,
     private store: Store<AppState>,
+    private localStorageService: LocalStorageService,
   ) {
     super();
   }
@@ -62,6 +64,12 @@ export class SidenavComponent extends Unsub implements OnInit, AfterViewInit {
     this.sidenav.toggle();
   }
 
+  public closeSidenavIfMobile(): void {
+    if (!this.isLargeScreen) {
+      this.sidenav.close();
+    }
+  }
+
   public logout() {
     this.store.dispatch(SpinnerActions.startRequest());
 
@@ -69,6 +77,7 @@ export class SidenavComponent extends Unsub implements OnInit, AfterViewInit {
       takeUntil(this.destroy$),
     ).subscribe(() => {
       this.store.dispatch(SpinnerActions.endRequest());
+      this.localStorageService.clear();
       this.router.navigate(['/login']);
     });
   }

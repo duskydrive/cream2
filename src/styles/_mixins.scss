@@ -18,4 +18,15 @@
         padding: 0 8px 0 8px !important;
       }
     }
+
+    @media (max-width: 499px) {
+      .mat-mdc-button, 
+      .mat-mdc-flat-button,
+      .mat-mdc-stroked-button,
+      .mat-mdc-outlined-button,
+      .mat-mdc-raised-button {
+        height: auto !important;
+        padding: 10px 30px !important;
+      }
+    }
 }

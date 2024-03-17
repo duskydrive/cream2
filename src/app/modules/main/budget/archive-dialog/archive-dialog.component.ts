@@ -24,7 +24,7 @@ export class ArchiveDialogComponent extends Unsub implements OnInit {
 
   }
 
-  onSubmit() {  
+  public onSubmit() {  
     this.store.dispatch(BudgetActions.updateBudget({ budgetId: this.data.id, budgetData: { isArchived: true } }));
     this.matDialogRef.close();
   }

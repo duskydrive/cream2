@@ -56,7 +56,7 @@
 			
 				<div *ngFor="let item of expensesArray.controls; let i = index" formGroupName="{{i}}" cdkDrag class="expense mb-6 flex items-start">
 			
-					<mat-form-field appearance="outline" class="mr-3 w-4/5" color="accent">
+					<mat-form-field appearance="outline" class="mr-3 w-1/2 sm:w-4/5" color="accent">
 						<mat-label>{{ 'title' | translate }}</mat-label>
 						<input matInput type="text" formControlName="title">
 						<mat-error>
@@ -64,7 +64,7 @@
 						</mat-error>
 					</mat-form-field>
 
-					<mat-form-field appearance="outline" class="mr-3 w-1/5" color="accent">
+					<mat-form-field appearance="outline" class="mr-3 w-1/2 sm:w-1/5" color="accent">
 						<mat-label>{{ 'amount' | translate }}</mat-label>
 						<input matInput type="number" formControlName="amount" (input)="onAmountChange()">
 						<mat-error>
@@ -80,9 +80,9 @@
 			
 			<div class="mb-6 flex items-start">
 		
-				<div class="mr-3 w-4/5"></div>
+				<div class="mr-3 w-1/2 sm:w-4/5"></div>
 
-				<mat-form-field appearance="outline" class="mr-3 w-1/5" color="accent">
+				<mat-form-field appearance="outline" class="mr-3 w-1/2 sm:w-1/5" color="accent">
 					<mat-label>{{ 'add_expenses' | translate }}</mat-label>
 					<input matInput type="number" #rowAmount value="1">
 				</mat-form-field>

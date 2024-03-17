@@ -9,15 +9,15 @@
 			<div>
 				<div class="uppercase menu-label ml-4 mb-2">menu</div>
 				<div class="nav-menu">
-					<a class="flex rounded items-center" [routerLink]="['budget']">
+					<a class="flex rounded items-center" [routerLink]="['budget']" (click)="closeSidenavIfMobile()">
 						<mat-icon svgIcon="sidenav-dashboard" class="mr-5 text-7xl"></mat-icon>
 						<span>{{ 'budget' | translate }}</span>
 					</a>
-					<a class="flex rounded items-center" [routerLink]="['create']">
+					<a class="flex rounded items-center" [routerLink]="['create']" (click)="closeSidenavIfMobile()">
 						<mat-icon svgIcon="sidenav-create" class="mr-5 text-7xl"></mat-icon>
 						<span>{{ 'create_budget' | translate }}</span>
 					</a>
-					<a class="flex rounded items-center" [routerLink]="['spend']">
+					<a class="flex rounded items-center" [routerLink]="['spend']" (click)="closeSidenavIfMobile()">
 						<mat-icon svgIcon="sidenav-spend" class="mr-5 text-7xl"></mat-icon> 
 						<span>{{ 'spend' | translate }}</span>
 					</a>
@@ -25,14 +25,14 @@
 			</div>
 
 			<div class="nav-menu">
-				<button mat-button class="w-full" (click)="logout()">
+				<button mat-button class="w-full" (click)="closeSidenavIfMobile(); logout()">
 					<mat-icon svgIcon="sidenav-logout" class="mr-5 text-7xl"></mat-icon> 
 						<span>{{ 'logout' | translate }}</span>
 				</button>
 				
 				<div class="divider w-full mt-4 -mr-4 mb-7 h-px"></div>
 
-				<div class="profile-thumbnail flex items-center pl-5 cursor-pointer" [routerLink]="['profile']">
+				<div class="profile-thumbnail flex items-center pl-5 cursor-pointer" [routerLink]="['profile']" (click)="closeSidenavIfMobile()">
 					<ng-container *ngIf="userPhoto$ | async as userPhoto; else noAvatar">
 						<img [src]="userPhoto" alt="User Photo" class="w-12 h-12 rounded-full object-cover mr-4">
 					</ng-container>

@@ -4,7 +4,7 @@
 		<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-0">{{ 'spend' | translate }}</h1>	
 	</ng-template>
 
-	<mat-form-field appearance="outline" color="accent">
+	<mat-form-field appearance="outline" color="accent" class="w-40 sm:w-auto">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
 		<mat-select (selectionChange)="changeBudget($event.value)" [value]="currentBudgetId$ | async">
 			<mat-option *ngFor="let budget of budgets$ | async; trackBy:identify" [value]="budget.id">{{ budget.title }}</mat-option>
@@ -12,22 +12,22 @@
 	</mat-form-field>
 </div>
 
-<div class="px-10 pb-10 wrapper">
+<div class="px-5 pb-5 sm:px-10 sm:pb-10 wrapper">
 	<div *ngIf="currentBudget$ | async as currentBudget; else noBudget">
 		
-		<div class="mb-8 px-8 py-4 flex heading-wrapper items-center justify-normal rounded mat-elevation-z8">
+		<div class="mb-8 p-4 xl:px-8 xl:py-4 flex heading-wrapper flex-col sm:flex-row sm:items-center sm:justify-normal rounded mat-elevation-z8">
 			
-			<div class="heading-column py-2 px-4 w-1/4 flex items-center justify-center">
-				<mat-icon (click)="changeDateByBtn('prev')" class="arrow-icon cursor-pointer">keyboard_arrow_left</mat-icon>
+			<div class="heading-column py-2 px-4 sm:w-1/4 flex items-center sm:justify-center">
+				<mat-icon (click)="changeDateByBtn('prev')" class="arrow-icon cursor-pointer lg:!hidden xl:!block">keyboard_arrow_left</mat-icon>
 				<span class="mx-3 !mb-0 text-xl w-24 text-center" *ngIf="dayOfWeek$ | async as dayOfWeek">
 					{{ dayOfWeek | translate }}
 				</span>
-				<mat-icon (click)="changeDateByBtn('next')" class="arrow-icon cursor-pointer">keyboard_arrow_right</mat-icon>
+				<mat-icon (click)="changeDateByBtn('next')" class="arrow-icon cursor-pointer lg:!hidden xl:!block">keyboard_arrow_right</mat-icon>
 			</div>
 
-			<form [formGroup]="spendForm" class="heading-column py-2 px-4 w-1/4 flex items-center justify-center">
+			<form [formGroup]="spendForm" class="heading-column py-2 px-4 w-full sm:w-1/4 flex items-center sm:justify-center">
 				
-				<mat-form-field appearance="outline" class="w-4/5" color="accent">					
+				<mat-form-field appearance="outline" class="w-full sm:w-4/5" color="accent">					
 					<input matInput [matDatepicker]="picker" formControlName="currentDate" [min]="minCalendarDate" [max]="maxCalendarDate">
 					<mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
 					<mat-datepicker #picker></mat-datepicker>
@@ -38,12 +38,12 @@
 			
 			</form>
 			
-			<div class="heading-column py-2 px-4 w-1/4 flex items-center justify-center">
+			<div class="heading-column py-2 px-4 sm:w-1/4 flex items-center sm:justify-center">
 				<span class="mr-3">{{ 'todays_budget' | translate }}:</span>
 				<span class="font-semibold w-24">{{ todayDaily$ | async }} {{ currentBudget.currency }}</span>
 			</div>
 		
-			<div class="heading-column py-2 px-4 w-1/4 flex items-center justify-center">
+			<div class="heading-column py-2 px-4 sm:w-1/4 flex items-center sm:justify-center">
 				<span class="mr-3">{{ 'todays_left' | translate }}:</span>
 				<span class="font-semibold w-24">{{ todaysLeft$ | async }} {{ currentBudget.currency }}</span>
 			</div>
@@ -52,8 +52,9 @@
 
 		</div>
 		<form [formGroup]="spendFormGroup">
-			<div class="mat-elevation-z8">
+			<div class="mat-elevation-z8 overflow-x-auto">
 				<mat-table 
+				class="m-w-700"
 				#table
 				[dataSource]="spendArray.controls"
 				formArrayName="spendArray">
@@ -114,20 +115,23 @@
 				<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 				<mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
 			</mat-table>
-	
-			<div class="flex justify-end custom-row">
-				<div class="add-row py-2 px-6 flex justify-center items-center">
-					<mat-icon class="cursor-pointer" (click)="addNewSpend()">add</mat-icon>
+
+			<div class="w-100 m-w-700">
+				<div class="flex justify-end custom-row">
+					<div class="add-row py-2 px-6 flex justify-center items-center">
+						<mat-icon class="cursor-pointer" (click)="addNewSpend()">add</mat-icon>
+					</div>
+				</div>
+		
+				<div class="table-footer rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase lg:text-base xl:text-2xl">
+					<div class="px-9 text-nowrap">{{ 'today_daily' | translate }}:</div>
+					<div class="px-6"></div>
+					<div class="px-6 text-nowrap">{{ todaysSpend$ | async }} {{ currentBudget.currency }}</div>
+					<div class="px-6"></div>
+					<div class="px-6"></div>
 				</div>
 			</div>
 	
-			<div class="table-footer rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase text-2xl">
-				<div class="px-9">{{ 'today_daily' | translate }}:</div>
-				<div class="px-6"></div>
-				<div class="px-6">{{ todaysSpend$ | async }} {{ currentBudget.currency }}</div>
-				<div class="px-6"></div>
-				<div class="px-6"></div>
-			</div>
 		</div>
 	</form>
 	</div>

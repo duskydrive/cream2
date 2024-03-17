@@ -19,7 +19,7 @@ export class DeleteDialogComponent extends Unsub implements OnInit {
 
   }
 
-  onSubmit() {
+  public onSubmit() {
     this.matDialogRef.close(true);
   }
 }

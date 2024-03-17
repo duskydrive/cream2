@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../store/budget/budget.actions';
@@ -31,16 +31,17 @@ import { TranslateService } from '@ngx-translate/core';
   selector: 'app-budget',
   templateUrl: './budget.component.html',
   styleUrls: ['./budget.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BudgetComponent extends Unsub implements OnInit {
   public displayedColumns: string[] = ['items', 'amount', 'balance', 'action'];
   public currentBudget$: Observable<IBudget | null> = this.store.select(BudgetSelectors.selectCurrentBudget);
   public currentBudgetId$: Observable<string | undefined> = this.store.select(BudgetSelectors.selectCurrentBudgetId);
   public budgets$: Observable<IBudgetTitleAndId[] | null> = this.store.select(BudgetSelectors.selectBudgetsTitlesAndIds);
-  private userId$: Observable<string | null> = this.store.select(UserSelectors.selectUserId);
   public dataSource: any[] = [];
   public isDragging = false;
   public dragDisabled = true;
+  private userId$: Observable<string | null> = this.store.select(UserSelectors.selectUserId);
 
   @ViewChild(MatTable) table!: MatTable<any>;
 
@@ -67,11 +68,6 @@ export class BudgetComponent extends Unsub implements OnInit {
   }
     
   public ngOnInit() {
-    this.budgets$.pipe(
-      filter((budgetsTitlesAndIds: IBudgetTitleAndId[] | null): budgetsTitlesAndIds is IBudgetTitleAndId[] => !!budgetsTitlesAndIds),
-      takeUntil(this.destroy$),
-    ).subscribe();
-    
     this.currentBudget$.pipe(
       distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
       takeUntil(this.destroy$),
@@ -122,7 +118,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe();
   }
 
-  displayDaysDiff(dateStart: Timestamp, dateEnd: Timestamp): string {
+  public displayDaysDiff(dateStart: Timestamp, dateEnd: Timestamp): string {
     const startDate = moment(dateStart.toDate());
     const endDate = moment(dateEnd.toDate()).endOf('day');
     const formattedStartDate = startDate.format('MM/DD/YYYY');
@@ -170,7 +166,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe();
   }
 
-  openEditDialog() {
+  public openEditDialog() {
     return this.currentBudget$.pipe(
       switchMap((budget: IBudget | null) => this.matDialog.open(EditDialogComponent, {
         data: {
@@ -181,7 +177,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe();
   }
 
-  openReviseDialog() {
+  public openReviseDialog() {
     return this.currentBudget$.pipe(
       switchMap((budget: IBudget | null) => this.matDialog.open(ReviseDialogComponent, {
         data: {
@@ -192,7 +188,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe();
   }
 
-  openArchiveDialog() {
+  public openArchiveDialog() {
     return this.currentBudget$.pipe(
       switchMap((budget: IBudget | null) => {
         if (budget) {
@@ -209,7 +205,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     ).subscribe();
   }
 
-  openArchiveListDialog() {
+  public openArchiveListDialog() {
     return this.userId$.pipe(
       switchMap((userId: string | null) => {
         if (userId) {
@@ -240,7 +236,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     this.store.dispatch(BudgetActions.addExpense());
   }
 
-  drop(event: CdkDragDrop<any>) {
+  public drop(event: CdkDragDrop<any>) {
     this.dragDisabled = true;
     
     if (event.previousIndex !== event.currentIndex) {
@@ -249,22 +245,15 @@ export class BudgetComponent extends Unsub implements OnInit {
     }
   }
   
-  dragStarted() {
+  public dragStarted() {
     this.isDragging = true;
   }
 
-  dragEnded() {
+  public dragEnded() {
     this.isDragging = false;
   }
 
-  identify(index: number, item: IBudgetTitleAndId){
+  public identify(index: number, item: IBudgetTitleAndId){
     return item.id;
-  }
-  
-  public onSubmit() {
-    // if (this.expensesForm.invalid) {
-      // this.expensesForm.markAllAsTouched();
-      // return;
-    // }
   }
 }

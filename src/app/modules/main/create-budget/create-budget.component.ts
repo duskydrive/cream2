@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, combineLatestWith, filter, map, switchMap, take, takeUntil, tap, throwError } from 'rxjs';
 import { Timestamp } from 'firebase/firestore';
@@ -21,6 +21,7 @@ import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculat
   selector: 'app-create-budget',
   templateUrl: './create-budget.component.html',
   styleUrls: ['./create-budget.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
 export class CreateBudgetComponent extends Unsub implements OnInit, OnDestroy {

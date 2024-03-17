@@ -10,14 +10,12 @@ import { FormHelpersService } from 'src/app/shared/services/form-helpers.service
 import { Unsub } from 'src/app/core/classes/unsub';
 import { MatTable } from '@angular/material/table';
 import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
-import { BehaviorSubject, EMPTY, Observable, Subject, combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, distinctUntilChanged, filter, map, pairwise, startWith, switchMap, take, takeUntil, tap, withLatestFrom} from 'rxjs';
 import { IBudget, IExpense, ISpend } from 'src/app/shared/models/budget.interface';
 import * as moment from 'moment';
-import { Timestamp } from '@angular/fire/firestore';
 import { isEqual } from 'lodash';
 import { MatDialog } from '@angular/material/dialog';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
-import { Router } from '@angular/router';
 import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
 import { LocalStorageService } from 'src/app/core/services/storage.service';
 
@@ -39,7 +37,6 @@ export class SpendComponent extends Unsub implements OnInit {
   public todaysSpend$: BehaviorSubject<number>= new BehaviorSubject(0); 
   public expenses: IExpense[] = [];
   public dayOfWeek$: BehaviorSubject<string> = new BehaviorSubject<string>('');
-  public dataSource: any[] = [];
   public allSpend: ISpend[] = [];
   public minCalendarDate: Date | null = null;
   public maxCalendarDate: Date | null = null;
@@ -60,7 +57,6 @@ export class SpendComponent extends Unsub implements OnInit {
     public localStorageService: LocalStorageService,
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
-    private router: Router,
     private snackbarService: SnackbarService,
     private matDialog: MatDialog,
   ) {
@@ -84,27 +80,22 @@ export class SpendComponent extends Unsub implements OnInit {
   }
     
   public ngOnInit() {
-    this.budgets$.pipe(
-      filter((budgetsTitlesAndIds: IBudgetTitleAndId[] | null): budgetsTitlesAndIds is IBudgetTitleAndId[] => !!budgetsTitlesAndIds),
-      takeUntil(this.destroy$),
-    ).subscribe();
-
-    this.currentDate.valueChanges.pipe(
-      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
-      takeUntil(this.destroy$),
-    ).subscribe((date: Date) => {
-      setTimeout(() => {
-        if (date) {
-          this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
-          this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
-          this.dayOfWeek$.next(moment(date).format('dddd').toLocaleLowerCase());
-        }
-      });
-    });
-    
-
+    this.initCurrentDateSubscribtion();
+    this.initCurrentBudgetSubscribtion();
     this.setupSpendArray();
+  }
     
+  public changeBudget(budgetId: string) {
+    this.userId$.pipe(
+      filter((userId: string | null): userId is string => !!userId),
+      take(1),
+      tap((userId: string) => {
+        this.store.dispatch(BudgetActions.loadBudget({ userId, budgetId }));
+      }),
+    ).subscribe();
+  }
+
+  private initCurrentBudgetSubscribtion() {
     this.currentBudget$.pipe(
       startWith(null as IBudget | null),
       pairwise(),
@@ -124,15 +115,20 @@ export class SpendComponent extends Unsub implements OnInit {
       }
     }); 
   }
-    
-  public changeBudget(budgetId: string) {
-    this.userId$.pipe(
-      filter((userId: string | null): userId is string => !!userId),
-      take(1),
-      tap((userId: string) => {
-        this.store.dispatch(BudgetActions.loadBudget({ userId, budgetId }));
-      }),
-    ).subscribe();
+
+  private initCurrentDateSubscribtion() {
+    this.currentDate.valueChanges.pipe(
+      distinctUntilChanged((prev, curr) => isEqual(prev, curr)),
+      takeUntil(this.destroy$),
+    ).subscribe((date: Date) => {
+      setTimeout(() => {
+        if (date) {
+          this.store.dispatch(BudgetActions.loadPreviousSpend({ date }));
+          this.store.dispatch(BudgetActions.loadSpendByDate({ date }));
+          this.dayOfWeek$.next(moment(date).format('dddd').toLocaleLowerCase());
+        }
+      });
+    });
   }
 
   private setupSpendArray() {
@@ -195,16 +191,6 @@ export class SpendComponent extends Unsub implements OnInit {
     return this.spendFormGroup.get(name) as AbstractControl;
   }
 
-  displayDaysDiff(dateStart: Timestamp, dateEnd: Timestamp): string {
-    const startDate = moment(dateStart.toDate());
-    const endDate = moment(dateEnd.toDate()).endOf('day');
-    const formattedStartDate = startDate.format('MM/DD/YYYY');
-    const formattedEndDate = endDate.format('MM/DD/YYYY');
-    const daysDiff = this.budgetCalculatorService.countDaysDiff(dateStart, dateEnd);
-  
-    return `${formattedStartDate} - ${formattedEndDate} (${daysDiff} days)`;
-  }
-  
   public onBlurExpenseTitle(index: number) {
     const group = this.spendArray.at(index);
     if (group.get('title')!.value === group.get('originalTitle')!.value) return;
@@ -272,7 +258,7 @@ export class SpendComponent extends Unsub implements OnInit {
     return date.isSameOrAfter(minDate) && date.isSameOrBefore(maxDate);
   }
 
-  public openConfirmDeleteDialog(spend: any) {
+  public openConfirmDeleteDialog(spend: ISpend) {
     this.matDialog.open(DeleteDialogComponent, {
       data: { title: spend.title }
     })
@@ -314,8 +300,8 @@ export class SpendComponent extends Unsub implements OnInit {
       }),
       takeUntil(this.destroy$),
     ).subscribe((expenses: any) => {
-      const newExpenseCategory = expenses.find((expense: any) => expense.id === newCategory);
-      const oldExpenseCategory = expenses.find((expense: any) => expense.id === oldCategory);
+      const newExpenseCategory = expenses.find((expense: IExpense) => expense.id === newCategory);
+      const oldExpenseCategory = expenses.find((expense: IExpense) => expense.id === oldCategory);
 
       if (newExpenseCategory) {
         const balance = newExpenseCategory.balance;
@@ -344,14 +330,7 @@ export class SpendComponent extends Unsub implements OnInit {
     });
   }
 
-  identify(index: number, item: IBudgetTitleAndId){
+  public identify(index: number, item: IBudgetTitleAndId){
     return item.id;
-  }
-  
-  public onSubmit() {
-    // if (this.expensesForm.invalid) {
-      // this.expensesForm.markAllAsTouched();
-      // return;
-    // }
   }
 }

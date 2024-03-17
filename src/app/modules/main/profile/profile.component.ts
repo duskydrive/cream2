@@ -1,6 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EMPTY, Observable, catchError, combineLatest, filter, from, switchMap, take, takeUntil, tap } from 'rxjs';
+import { Observable, filter, take, takeUntil } from 'rxjs';
 
 import { AuthService } from 'src/app/core/services/auth.service';
 import { SnackbarService } from 'src/app/core/services/snackbar.service';
@@ -11,19 +11,16 @@ import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
 import * as UserSelectors from 'src/app/store/user/user.selectors';
 import * as UserActions from 'src/app/store/user/user.actions';
-import * as SpinnerActions from '../../../store/spinner/spinner.actions';
 
-import { getDownloadURL, getStorage, ref, uploadBytes } from '@angular/fire/storage';
-import { User } from 'firebase/auth';
-import { updateProfile, updatePassword } from '@angular/fire/auth';
-import { Firestore, collection, doc, setDoc } from '@angular/fire/firestore';
-import { FirebaseError } from 'firebase/app';
-import { FileService } from 'src/app/core/services/file.service';
+import { getStorage } from '@angular/fire/storage';
+import { Firestore } from '@angular/fire/firestore';
 import { LANGUAGES } from 'src/app/app.constants';
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent extends Unsub implements OnInit {
   public profileForm: FormGroup;

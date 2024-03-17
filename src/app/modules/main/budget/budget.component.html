@@ -1,7 +1,7 @@
 <div class="!mb-5 lg:!mb-12 flex justify-between items-center">
 	<h1 class="mat-headline-5 !text-3xl lg:!text-4xl !mb-0">{{ 'budget' | translate }}</h1>
 
-	<mat-form-field appearance="outline" color="accent">
+	<mat-form-field appearance="outline" color="accent" class="w-40 sm:w-auto">
 		<mat-label>{{ 'current_budget' | translate }}</mat-label>
 		<mat-select (selectionChange)="changeBudget($event.value)" [value]="currentBudgetId$ | async">
 			<mat-option *ngFor="let budget of budgets$ | async; trackBy:identify" [value]="budget.id">{{ budget.title }}</mat-option>
@@ -9,26 +9,27 @@
 	</mat-form-field>
 </div>
 
-<div class="p-10 wrapper">
+<div class="p-5 sm:p-10 wrapper">
 	<div *ngIf="currentBudget$ | async as currentBudget; else noBudget">
-		<div class="mb-8 flex justify-between items-center">
-			<h3 class="!mb-0 !font-medium">{{ currentBudget.title }}</h3>
+		<div class="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+			<h3 class="sm:!mb-0 !font-medium">{{ currentBudget.title }}</h3>
 			
-			<div class="flex items-center">
-				<div class="font-semibold mr-3">{{ displayDaysDiff(currentBudget.dateStart, currentBudget.dateEnd) }}</div>
+			<div class="flex flex-col sm:items-center sm:flex-row">
+				<div class="font-semibold mr-3 text-sm sm:text-base">{{ displayDaysDiff(currentBudget.dateStart, currentBudget.dateEnd) }}</div>
 				<mat-icon class="cursor-pointer" [matMenuTriggerFor]="menu">more_horiz</mat-icon>
 			</div>
 		</div>
 		<form [formGroup]="expensesFormGroup">
-			<div class="mat-elevation-z8">
+			<div class="mat-elevation-z8 overflow-x-auto">
 				<mat-table 
-				#table
-				[dataSource]="expensesArray.controls"
-				cdkDropList
-				(cdkDropListDropped)="drop($event)"
-				cdkDropListData="dataSource"
-				formArrayName="expensesArray"
-				[cdkDropListDisabled]="dragDisabled">
+					class="m-w-600"
+					#table
+					[dataSource]="expensesArray.controls"
+					cdkDropList
+					(cdkDropListDropped)="drop($event)"
+					cdkDropListData="dataSource"
+					formArrayName="expensesArray"
+					[cdkDropListDisabled]="dragDisabled">
 		
 				<ng-container matColumnDef="items">
 					<mat-header-cell *matHeaderCellDef class="!py-7 !px-9 uppercase"> {{ 'category' | translate }} </mat-header-cell>
@@ -72,24 +73,26 @@
 				[cdkDragData]="row" [class.hidden]="row.get('title').value === 'Daily'"></mat-row>
 			</mat-table>
 	
-			<div class="flex justify-end custom-row">
-				<div class="add-row py-2 px-6 flex justify-center items-center">
-					<mat-icon class="cursor-pointer ml-6" (click)="addNewExpense()">add</mat-icon>
+			<div class="w-100 m-w-600">
+				<div class="flex justify-end custom-row">
+					<div class="add-row py-2 px-6 flex justify-center items-center">
+						<mat-icon class="cursor-pointer ml-6" (click)="addNewExpense()">add</mat-icon>
+					</div>
 				</div>
-			</div>
-	
-			<div class="table-footer-top h-16 flex items-center font-semibold uppercase text-lg">
-				<div class="px-9">{{ 'budget_planned' | translate }}:</div>
-				<div class="px-6">{{ currentBudget.total }} {{ currentBudget.currency }}</div>
-				<div class="px-6"></div>
-				<div class="px-6"></div>
-			</div>
-	
-			<div class="table-footer-bottom rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase text-2xl">
-				<div class="px-9">{{ 'daily_budget' | translate }}:</div>
-				<div class="px-6">{{ currentBudget.daily }} {{ currentBudget.currency }}</div>
-				<div class="px-6"></div>
-				<div class="px-6"></div>
+		
+				<div class="table-footer-top h-16 flex items-center font-semibold uppercase lg:text-base xl:text-lg">
+					<div class="px-9 text-nowrap">{{ 'budget_planned' | translate }}:</div>
+					<div class="px-6 text-nowrap">{{ currentBudget.total }} {{ currentBudget.currency }}</div>
+					<div class="px-6"></div>
+					<div class="px-6"></div>
+				</div>
+		
+				<div class="table-footer-bottom rounded-br-md rounded-bl-md h-24 flex items-center font-semibold uppercase lg:text-xl xl:text-2xl">
+					<div class="px-9 text-nowrap">{{ 'daily_budget' | translate }}:</div>
+					<div class="px-6 text-nowrap">{{ currentBudget.daily }} {{ currentBudget.currency }}</div>
+					<div class="px-6"></div>
+					<div class="px-6"></div>
+				</div>
 			</div>
 		</div>
 	</form>

@@ -4,7 +4,6 @@ import { Store } from '@ngrx/store';
 import { Unsub } from 'src/app/core/classes/unsub';
 import { AppState } from 'src/app/store';
 import * as BudgetActions from '../../../../store/budget/budget.actions';
-import { Router } from '@angular/router';
 import { IBudgetTitleAndId } from 'src/app/core/interfaces/interfaces';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -37,7 +36,7 @@ export class ArchiveListDialogComponent extends Unsub implements OnInit {
 
   }
 
-  restoreBudget() {  
+  public restoreBudget() {  
     if (this.budgetsForm.invalid) {
       this.budgetsForm.markAllAsTouched();
       return;
