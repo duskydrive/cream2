@@ -192,7 +192,7 @@ export class BudgetEffects {
 
   getDailyCategoryId$ = createEffect(() => 
     this.actions$.pipe(
-      ofType(BudgetActions.loadBudgetSuccess),
+      ofType(BudgetActions.loadBudgetSuccess, BudgetActions.createBudgetSuccess),
       switchMap(({ budget }) => {
         this.localStorageService.setItem('currentBudgetId', budget.id);
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store';
@@ -26,6 +26,7 @@ import { ArchiveDialogComponent } from './archive-dialog/archive-dialog.componen
 import { ArchiveListDialogComponent } from './archive-list-dialog/archive-list-dialog.component';
 import { BudgetService } from 'src/app/shared/services/budget.service';
 import { TranslateService } from '@ngx-translate/core';
+import { ViewportScroller } from '@angular/common';
 
 @Component({
   selector: 'app-budget',
@@ -53,6 +54,7 @@ export class BudgetComponent extends Unsub implements OnInit {
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
     private router: Router,
+    private viewportScroller: ViewportScroller,
     private snackbarService: SnackbarService,
     private matDialog: MatDialog,
   ) {
