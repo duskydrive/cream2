@@ -26,7 +26,7 @@ import { ArchiveDialogComponent } from './archive-dialog/archive-dialog.componen
 import { ArchiveListDialogComponent } from './archive-list-dialog/archive-list-dialog.component';
 import { BudgetService } from 'src/app/shared/services/budget.service';
 import { TranslateService } from '@ngx-translate/core';
-import { ViewportScroller } from '@angular/common';
+import { nullToZero } from 'src/app/app.helpers';
 
 @Component({
   selector: 'app-budget',
@@ -54,7 +54,6 @@ export class BudgetComponent extends Unsub implements OnInit {
     private formBuilder: FormBuilder,
     private store: Store<AppState>,
     private router: Router,
-    private viewportScroller: ViewportScroller,
     private snackbarService: SnackbarService,
     private matDialog: MatDialog,
   ) {
@@ -78,12 +77,14 @@ export class BudgetComponent extends Unsub implements OnInit {
 
       if (budget) {
         budget.expenses.forEach((expense: IExpense) => {
+          const expenseAmount = expense.amount === 0 ? null : expense.amount;
+
           this.expensesArray.push(this.formBuilder.group({
             id: expense.id,
             title: expense.title,
             originalTitle: expense.title,
-            amount: expense.amount,
-            originalAmount: expense.amount,
+            amount: expenseAmount,
+            originalAmount: expenseAmount,
             balance: expense.balance,
             orderIndex: expense.orderIndex,
           }));
@@ -142,8 +143,8 @@ export class BudgetComponent extends Unsub implements OnInit {
   
   public onBlurExpenseAmount(index: number) {
     const group = this.expensesArray.at(index);
-    const newAmount = +group.get('amount')!.value;
-    const oldAmount = +group.get('originalAmount')!.value;
+    const newAmount = nullToZero(+group.get('amount')!.value);
+    let oldAmount: number | null = nullToZero(+group.get('originalAmount')!.value);
   
     if (newAmount === oldAmount) {
       return;
@@ -152,14 +153,17 @@ export class BudgetComponent extends Unsub implements OnInit {
     this.currentBudget$.pipe(
       filter((budget: IBudget | null): budget is IBudget => !!budget),
       map((budget: IBudget) => {
-        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount);
+        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount!);
         if (isValid) {
           this.store.dispatch(BudgetActions.updateExpenseAmount({
             expenseId: group.get('id')!.value,
             newAmount,
-            newBalance: newAmount - (oldAmount - group.get('balance')!.value),
+            newBalance: newAmount - (oldAmount! - group.get('balance')!.value),
           }));
         } else {
+          if (oldAmount === 0) {
+            oldAmount = null;
+          }
           group.get('amount')!.setValue(oldAmount);
           this.snackbarService.showError('daily is negative');
         }

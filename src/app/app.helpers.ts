@@ -9,3 +9,7 @@ export const prepareExpenses = (arr: Pick<IExpense, 'title' | 'amount'>[]): Omit
     };
   });
 }
+
+export const nullToZero = (value: number | null): number => {
+  return value === null ? 0 : value;
+}

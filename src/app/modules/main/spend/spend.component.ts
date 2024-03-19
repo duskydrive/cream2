@@ -18,6 +18,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { BudgetCalculatorService } from 'src/app/shared/services/budget-calculator.service';
 import { DeleteDialogComponent } from './delete-dialog/delete-dialog.component';
 import { LocalStorageService } from 'src/app/core/services/storage.service';
+import { nullToZero } from 'src/app/app.helpers';
 
 @Component({
   selector: 'app-spend',
@@ -174,12 +175,13 @@ export class SpendComponent extends Unsub implements OnInit {
 
   private addSpendToFormArray(spend: ISpend, balances: Map<string | null, number>) {
     const balance = balances.get(spend?.categoryId) || 0;
+    const spendAmount = spend.amount === 0 ? null : spend.amount;
     const spendFormGroup = this.formBuilder.group({
       id: spend.id,
       title: spend.title,
       originalTitle: spend.title,
-      amount: spend.amount,
-      originalAmount: spend.amount,
+      amount: spendAmount,
+      originalAmount: spendAmount,
       categoryId: spend.categoryId,
       originalCategory: spend.categoryId,
       balance: balance,
@@ -205,8 +207,8 @@ export class SpendComponent extends Unsub implements OnInit {
     const group = this.spendArray.at(index);
     const spendId = group.get('id')!.value;
     const categoryId = group.get('categoryId')!.value;
-    const newAmount = +group.get('amount')!.value;
-    const oldAmount = +group.get('originalAmount')!.value;
+    let newAmount = nullToZero(+group.get('amount')!.value);
+    let oldAmount: number | null = nullToZero(+group.get('originalAmount')!.value);
     const balance = +group.get('balance')!.value;
   
     if (newAmount === oldAmount) {
@@ -214,6 +216,9 @@ export class SpendComponent extends Unsub implements OnInit {
     }
 
     if (balance + oldAmount - newAmount < 0) {
+      if (oldAmount === 0) {
+        oldAmount = null;
+      }
       group.get('amount')!.setValue(oldAmount);
       this.snackbarService.showError('balance_not_enough_error');
       return;
@@ -222,13 +227,16 @@ export class SpendComponent extends Unsub implements OnInit {
     this.currentBudget$.pipe(
       filter((budget: IBudget | null): budget is IBudget => !!budget),
       map((budget: IBudget) => {
-        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount);
+        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount!);
         if (isValid) {
           const currentExpense = this.expenses.find((expense: IExpense) => expense.id === categoryId);
           if (currentExpense) {
-            this.store.dispatch(BudgetActions.updateSpendAmount( { spendId, amount: newAmount, payloadForNextAction: { categoryId, newAmount: currentExpense.amount, newBalance: balance + oldAmount - newAmount } }));
+            this.store.dispatch(BudgetActions.updateSpendAmount( { spendId, amount: newAmount, payloadForNextAction: { categoryId, newAmount: currentExpense.amount, newBalance: balance + oldAmount! - newAmount } }));
           }
         } else {          
+          if (oldAmount === 0) {
+            oldAmount = null;
+          }
           group.get('amount')!.setValue(oldAmount);
           this.snackbarService.showError('daily_negative_error');
         }
@@ -281,7 +289,12 @@ export class SpendComponent extends Unsub implements OnInit {
     const spendId = group.get('id')!.value;;
     const newCategory = group.get('categoryId')!.value;
     const oldCategory = group.get('originalCategory')!.value;
-    const amount = group.get('amount')!.value;
+    let amount = group.get('amount')!.value;
+
+    if (group.get('amount')!.value === null) {
+      amount = 0;
+    }
+    
 
     console.log('newCategory', newCategory)
     console.log('oldCategory', oldCategory)
