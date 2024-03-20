@@ -287,10 +287,10 @@ export class BudgetEffects {
       ofType(BudgetActions.reorderItemsAction),
       map(({ previousIndex, currentIndex, items }) => {
         const reorderedItems = [...items];
-        moveItemInArray(reorderedItems, previousIndex, currentIndex);
+        moveItemInArray(reorderedItems, previousIndex - 1, currentIndex - 1);
         const reindexedExpenses = reorderedItems.map((expense, index) => ({
           ...expense,
-          orderIndex: index
+          orderIndex: expense.title === 'Daily' ? 999999 : index
         }));
 
         if (reindexedExpenses) { 
