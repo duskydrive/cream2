@@ -70,7 +70,7 @@
 				
 				<mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
 				<mat-row *matRowDef="let row; columns: displayedColumns" cdkDrag
-				[cdkDragData]="row" [class.hidden]="row.get('title').value === 'Daily'"></mat-row>
+				[cdkDragData]="row" [class.hidden]="row.get('title').value === 'Daily'" [class.grey]="row.get('balance').value === 0"></mat-row>
 			</mat-table>
 	
 			<div class="w-100 m-w-600">
