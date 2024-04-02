@@ -56,6 +56,15 @@ export class BudgetCalculatorService {
     const daysDiff = this.countDaysDiff(budget.dateStart, budget.dateEnd);
     const amountLeft = budget.total - plannedSpend + oldAmount - newAmount - currentTotalDailySpend;
     const dailyWithUncategorisedSpend = amountLeft / daysDiff;
+
+    console.log('uncategorisedSpendObject', uncategorisedSpendObject);
+    console.log('currentTotalDailySpend', currentTotalDailySpend);
+    console.log('plannedSpend', plannedSpend);
+    console.log('daysDiff', daysDiff);
+    console.log('newAmount', newAmount);
+    console.log('oldAmount', oldAmount);
+    console.log('amountLeft', amountLeft);
+    console.log('dailyWithUncategorisedSpend', dailyWithUncategorisedSpend);
     
     if (dailyWithUncategorisedSpend >= 0) {
       return true;

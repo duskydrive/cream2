@@ -224,25 +224,19 @@ export class SpendComponent extends Unsub implements OnInit {
       return;
     } 
 
-    this.currentBudget$.pipe(
-      filter((budget: IBudget | null): budget is IBudget => !!budget),
-      map((budget: IBudget) => {
-        const isValid = this.budgetCalculatorService.isExpenseAmountValid(budget, newAmount, oldAmount!);
-        if (isValid) {
-          const currentExpense = this.expenses.find((expense: IExpense) => expense.id === categoryId);
-          if (currentExpense) {
-            this.store.dispatch(BudgetActions.updateSpendAmount( { spendId, amount: newAmount, payloadForNextAction: { categoryId, newAmount: currentExpense.amount, newBalance: balance + oldAmount! - newAmount } }));
-          }
-        } else {          
-          if (oldAmount === 0) {
-            oldAmount = null;
-          }
-          group.get('amount')!.setValue(oldAmount);
-          this.snackbarService.showError('daily_negative_error');
-        }
-      }),
-      take(1),
-    ).subscribe();
+    const isValid = (balance + oldAmount! - newAmount) >= 0;
+    if (isValid) {
+      const currentExpense = this.expenses.find((expense: IExpense) => expense.id === categoryId);
+      if (currentExpense) {
+        this.store.dispatch(BudgetActions.updateSpendAmount( { spendId, amount: newAmount, payloadForNextAction: { categoryId, newAmount: currentExpense.amount, newBalance: balance + oldAmount! - newAmount } }));
+      }
+    } else {          
+      if (oldAmount === 0) {
+        oldAmount = null;
+      }
+      group.get('amount')!.setValue(oldAmount);
+      this.snackbarService.showError('daily_negative_error');
+    }
   }
 
   public addNewSpend(): void {
