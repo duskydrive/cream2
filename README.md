@@ -1,27 +1,40 @@
-# Cream2
+# Project Cream
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.4.
+> This is a project I created for personal use to track spending and plan budgets.
 
-## Development server
+## Stack
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Angular
+- TypeScript
+- RxJS
+- Firebase (Backend)
+- Figma
+- Angular Material
+- NgRx (State Management)
+- Tailwind CSS
 
-## Code scaffolding
+## About
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+I built this Cream project so my wife and I could track our spending and plan our budgets effectively. I designed, coded, and implemented the backend using Firebase, making this a comprehensive solo project. We use this app daily to keep track of our budget.
 
-## Build
+The application features a user authentication system, allowing users to register and use the app. You can copy, delete, and edit budgets, check if the money on hand matches the budgeted amount, and track daily spending. The app also shows how much money you can spend out of your planned expenses. You can try it out yourself by visiting the link below.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Try the app here: [Cream Budget Tracker](https://cream2-7d217.web.app/)
 
-## Running unit tests
+## Screenshots
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+![Screenshot 1](src/assets/images/screen1.png)
+*Create budget*
 
-## Running end-to-end tests
+![Screenshot 2](src/assets/images/screen2.png)
+*Plan expenses*
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+![Screenshot 3](src/assets/images/screen3.png)
+*Budget dashboard*
 
-## Further help
+![Screenshot 4](src/assets/images/screen4.png)
+*Track your spendings*
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+
+Feel free to check out the code and let me know what you think!
